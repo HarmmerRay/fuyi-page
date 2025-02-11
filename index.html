@@ -3,10 +3,14 @@
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>辅忆</title>
   </head>
-  <body>
+  <body style="overflow-x: hidden;">
+      <div id="loading"
+           style="position: fixed; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: white; z-index: 9999;">
+          <p>加载中...</p>
+      </div>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
