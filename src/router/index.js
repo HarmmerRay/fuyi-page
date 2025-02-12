@@ -1,9 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '../views/Login.vue'
+import LoginPage from '../views/LoginPage.vue'
 import MainLayout from '../layouts/MainLayout.vue'
-import Home from '../views/Home.vue'
+import HomePage from '../views/HomePage.vue'
 import Community from '../views/Community.vue'
 import Profile from '../views/Profile.vue'
+import NoBarLayout from '@/layouts/NoBarLayout.vue'
 
 const routes = [
   {
@@ -11,9 +12,15 @@ const routes = [
     redirect: '/login',
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: Login,
+    path: '/',
+    component: NoBarLayout,
+    children: [
+      {
+        path: 'login',
+        name: 'LoginPage',
+        component: LoginPage,
+      },
+    ],
   },
   {
     path: '/',
@@ -21,8 +28,8 @@ const routes = [
     children: [
       {
         path: 'home',
-        name: 'Home',
-        component: Home,
+        name: 'HomePage',
+        component: HomePage,
       },
       {
         path: 'community',

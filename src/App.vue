@@ -13,8 +13,23 @@ import { RouterView } from 'vue-router'
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+#app {
+  height: 100%;
+}
+
+/* 隐藏滚动条但保持可滚动 */
+::-webkit-scrollbar {
+  display: none;
 }
 
 header {

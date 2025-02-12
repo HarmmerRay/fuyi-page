@@ -28,11 +28,3 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.bmp
-*.ico
-*.webp

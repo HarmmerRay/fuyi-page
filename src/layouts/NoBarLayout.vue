@@ -5,13 +5,8 @@
         <router-view></router-view>
       </div>
     </div>
-    <TabBar />
   </div>
 </template>
-
-<script setup>
-import TabBar from '../components/TabBar.vue'
-</script>
 
 <style scoped>
 .main-layout {
