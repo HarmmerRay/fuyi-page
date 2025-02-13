@@ -1,12 +1,41 @@
 <template>
   <div class="tab-bar">
-    <router-link to="/home">首页</router-link>
-    <router-link to="/community">社区资讯</router-link>
-    <router-link to="/profile">我的</router-link>
+    <router-link to="/home">
+      <img v-if="show1" src="../../public/home_grey.png" style="width: 6vw" alt="" />
+      <img v-else src="../../public/home_blue.png" style="width: 6vw" alt="" />
+      首页
+    </router-link>
+    <router-link to="/community">
+      <img v-if="show2" src="../../public/community_grey.png" style="width: 6vw" alt="" />
+      <img v-else src="../../public/community_blue.png" style="width: 6vw" alt="" />
+      社区资讯
+    </router-link>
+    <router-link to="/profile">
+      <img v-if="show3" src="../../public/profile_grey.png" style="width: 6vw" alt="" />
+      <img v-else src="../../public/profile_blue.png" style="width: 6vw" alt="" />
+      我的
+    </router-link>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const show1 = ref(route.path !== '/home')
+const show2 = ref(route.path !== '/community')
+const show3 = ref(route.path !== '/profile')
+
+watch(
+  () => route.path,
+  (newPath) => {
+    show1.value = newPath !== '/home'
+    show2.value = newPath !== '/community'
+    show3.value = newPath !== '/profile'
+  },
+)
+</script>
 
 <style scoped>
 .tab-bar {
