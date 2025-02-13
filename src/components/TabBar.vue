@@ -3,17 +3,17 @@
     <router-link to="/home">
       <img v-if="show1" src="../../public/home_grey.png" style="width: 6vw" alt="" />
       <img v-else src="../../public/home_blue.png" style="width: 6vw" alt="" />
-      首页
+      <div>首页</div>
     </router-link>
     <router-link to="/community">
       <img v-if="show2" src="../../public/community_grey.png" style="width: 6vw" alt="" />
       <img v-else src="../../public/community_blue.png" style="width: 6vw" alt="" />
-      社区资讯
+      <div>资讯</div>
     </router-link>
     <router-link to="/profile">
       <img v-if="show3" src="../../public/profile_grey.png" style="width: 6vw" alt="" />
       <img v-else src="../../public/profile_blue.png" style="width: 6vw" alt="" />
-      我的
+      <div>我的</div>
     </router-link>
   </div>
 </template>

@@ -242,13 +242,13 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCounterStore } from '@/stores/counter'
 import { showToast, showConfirmDialog } from 'vant'
-import { Postuser } from '@/api/login'
+import { get_code, user_login } from '@/api/login'
 const store = useCounterStore()
 const router = useRouter()
 const mobile = ref()
 const code = ref(null)
 const loading = ref(false) //页面加载时候 加载中... 是否显示
-const disabledClick = ref(false)
+const disabledClick = ref(false) // 获取验证码按钮不可再次点击
 const second = ref(60)
 const checked = ref(false) //复选框用户协议
 const validFn = async () => {
@@ -294,7 +294,7 @@ const handleLogin = async () => {
   if (mobile.value === '13290824341' && code.value === '1111') {
     router.push('/home')
   } else {
-    Postuser(mobile.value, code.value).then((res) => {
+    user_login(mobile.value, code.value).then((res) => {
       console.log(res)
       if (res.data.code === 0) {
         showToast('登录成功')
@@ -308,15 +308,27 @@ const handleLogin = async () => {
 }
 
 const getNumber = () => {
-  disabledClick.value = true
-  let timer = setInterval(() => {
-    second.value--
-    if (second.value <= 0) {
-      clearInterval(timer)
-      disabledClick.value = false
-      second.value = 60
+  if (!/^1[3-9]\d{9}$/.test(mobile.value)) {
+    showToast('请输入正确的手机号')
+    return false
+  }
+  get_code(mobile.value).then((res) => {
+    console.log(res)
+    if (res.data.status === 1) {
+      showToast('短信发送成功')
+      disabledClick.value = true
+      let timer = setInterval(() => {
+        second.value--
+        if (second.value <= 0) {
+          clearInterval(timer)
+          disabledClick.value = false
+          second.value = 60
+        }
+      }, 1000)
+    } else {
+      showToast('验证码发送失败，请稍后再试')
     }
-  }, 1000)
+  })
 }
 </script>
 
