@@ -60,10 +60,10 @@
       :style="{ padding: '10px', fontSize: '15px', width: '90%', height: '90%' }"
     >
       老年人辅助记忆平台用户协议<br />
-      欢迎使用老年人辅助记忆平台（以下简称“本平台”）。为了保障您的权益，请您仔细阅读并理解本用户协议的所有条款。您一旦使用本平台，即视为您已充分理解并同意本协议的所有内容。若您不同意本协议的任何条款，请停止使用本平台。<br />
+      欢迎使用老年人辅助记忆平台（以下简称"本平台"）。为了保障您的权益，请您仔细阅读并理解本用户协议的所有条款。您一旦使用本平台，即视为您已充分理解并同意本协议的所有内容。若您不同意本协议的任何条款，请停止使用本平台。<br />
 
       一、定义<br />
-      1. **本平台**：指由天津辅忆智能有限公司（以下简称“本公司”）开发并运营的老年人辅助记忆平台。<br />
+      1. **本平台**：指由天津辅忆智能有限公司（以下简称"本公司"）开发并运营的老年人辅助记忆平台。<br />
       2. **用户**：指使用本平台的个人或法人。<br />
 
       二、服务内容<br />
@@ -133,7 +133,7 @@
     >
       智选AI带货系统隐私保护协议
       <br />
-      欢迎使用智选AI带货系统（以下简称“本系统”）。本系统由海口妙友电子商务有限公司（以下简称“本公司”）开发并运营。本公司非常重视用户的隐私保护。在您使用本系统的过程中，本公司将按照本隐私保护协议（以下简称“本协议”）收集、使用和共享您的信息。本协议旨在帮助您了解本公司如何处理您的个人信息以及您享有的权利。
+      欢迎使用智选AI带货系统（以下简称"本系统"）。本系统由海口妙友电子商务有限公司（以下简称"本公司"）开发并运营。本公司非常重视用户的隐私保护。在您使用本系统的过程中，本公司将按照本隐私保护协议（以下简称"本协议"）收集、使用和共享您的信息。本协议旨在帮助您了解本公司如何处理您的个人信息以及您享有的权利。
       <br />
       在使用本系统前，请您仔细阅读并理解本协议的全部内容。若您不同意本协议的任何条款，请停止使用本系统。一旦您开始使用本系统，即表示您已同意本协议的全部内容。
       <br />
@@ -243,6 +243,7 @@ import { useRouter } from 'vue-router'
 import { useCounterStore } from '@/stores/counter'
 import { showToast, showConfirmDialog } from 'vant'
 import { get_code, user_login } from '@/api/login'
+
 const store = useCounterStore()
 const router = useRouter()
 const mobile = ref()
@@ -251,6 +252,7 @@ const loading = ref(false) //页面加载时候 加载中... 是否显示
 const disabledClick = ref(false) // 获取验证码按钮不可再次点击
 const second = ref(60)
 const checked = ref(false) //复选框用户协议
+
 const validFn = async () => {
   if (!/^1[3-9]\d{9}$/.test(mobile.value)) {
     showToast('请输入正确的手机号')
@@ -291,20 +293,16 @@ const privacy = () => {
 const handleLogin = async () => {
   if (!(await validFn())) return //没有通过校验
   loading.value = true
-  if (mobile.value === '13290824341' && code.value === '1111') {
-    router.push('/home')
-  } else {
-    user_login(mobile.value, code.value).then((res) => {
-      console.log(res)
-      if (res.data.code === 0) {
-        showToast('登录成功')
-        store.setadmin_id(res.data.data)
-        router.push('/home')
-      } else {
-        alert('手机号或验证码错误')
-      }
-    })
-  }
+  user_login(mobile.value, code.value).then((res) => {
+    console.log(res)
+    if (res.data.status === 0) {
+      showToast('登录成功')
+      store.set_user_id(res.data.user_id)
+      router.push('/home')
+    } else {
+      alert('手机号或验证码错误')
+    }
+  })
 }
 
 const getNumber = () => {
