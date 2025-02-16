@@ -21,3 +21,10 @@ export const get_code = (phone_number) => {
     },
   })
 }
+
+export const auth_check = () => {
+  return http({
+    url: '/hello',
+    method: 'GET',
+  })
+}
