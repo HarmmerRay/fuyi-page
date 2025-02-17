@@ -70,23 +70,21 @@ router.beforeEach((to, from, next) => {
 // 检查用户是否已登录的函数
 function checkAuth() {
   // 获取 token 和 user-id
-  // const token = getCookie('token')
-  // const userId = getCookie('user-id')
-
-  auth_check().then((res) => {
-    console.log(res)
-    if (res.data.code === 0) return true
+  const token = getCookie('token')
+  console.log(token)
+  return auth_check().then((res) => {
+    return res.data.code === '0';
   })
-  return false
 }
-
+// TODO
 // 获取 token 和 user-id 的值
-// function getCookie(name) {
-//   const cookieString = document.cookie
-//   const cookies = cookieString.split('; ').reduce((acc, cookie) => {
-//     const [key, value] = cookie.split('=')
-//     acc[key] = decodeURIComponent(value)
-//     return acc
-//   }, {})
-//   return cookies[name]
-// }
+function getCookie(name) {
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const [cookieName, cookieValue] = cookie.trim().split('=');
+    if (cookieName === name) {
+      return decodeURIComponent(cookieValue);
+    }
+  }
+  return null;
+}

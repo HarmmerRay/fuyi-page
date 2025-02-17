@@ -1,6 +1,6 @@
 import axios from 'axios'
 export const http = axios.create({
-  baseURL: 'http://127.0.0.1:5000',
+  baseURL: 'http://localhost:5000',
   timeout: 600000,
   headers: { 'X-Custom-Header': 'foobar' },
 })
