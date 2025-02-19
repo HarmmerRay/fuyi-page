@@ -23,10 +23,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { getCookie } from '../router/index.js'
+import {tixing_items_info, user_info} from "@/api/db.js";
 const maxVisibleCount = ref(2)
-
-const userName = ref('XXX') // 用户名
-const reminders = ref([
+let userName = ref('XXX') // 用户名
+let reminders = ref([
   {
     id: 1,
     time: '18:00',
@@ -75,32 +76,51 @@ const reminders = ref([
     timeLeft: '30分钟后',
     enabled: true,
   },
-  // {
-  //   id: 7,
-  //   time: '18:00',
-  //   summary: '吃晚饭',
-  //   description: '吃晚饭时间到了',
-  //   timeLeft: '30分钟后',
-  //   enabled: true,
-  // },
-  // {
-  //   id: 8,
-  //   time: '18:00',
-  //   summary: '吃晚饭',
-  //   description: '吃晚饭时间到了',
-  //   timeLeft: '30分钟后',
-  //   enabled: true,
-  // },
-  // {
-  //   id: 9,
-  //   time: '18:00',
-  //   summary: '吃晚饭',
-  //   description: '吃晚饭时间到了',
-  //   timeLeft: '30分钟后',
-  //   enabled: true,
-  // },
+  {
+    id: 7,
+    time: '18:00',
+    summary: '吃晚饭',
+    description: '吃晚饭时间到了',
+    timeLeft: '30分钟后',
+    enabled: true,
+  },
+  {
+    id: 8,
+    time: '18:00',
+    summary: '吃晚饭',
+    description: '吃晚饭时间到了',
+    timeLeft: '30分钟后',
+    enabled: true,
+  },
+  {
+    id: 9,
+    time: '18:00',
+    summary: '吃晚饭',
+    description: '吃晚饭时间到了',
+    timeLeft: '30分钟后',
+    enabled: true,
+  },
   // 更多提醒事项
 ])
+// todo 根据cookie中的user_id查询用户名及提醒事项信息
+const user_id = getCookie('user_id')
+if (user_id) {
+  user_info(user_id).then((res) => {
+    console.log(res)
+    console.log(res.data)
+    userName = res.data.user_name
+    console.log(userName)
+  })
+
+
+  tixing_items_info(user_id).then((res) => {
+    console.log(res)
+    reminders = res.data
+  })
+
+
+}
+
 const visibleReminders = computed(() => reminders.value.slice(0, maxVisibleCount.value))
 const timeOfDay = computed(() => {
   const hour = new Date().getHours()
