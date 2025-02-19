@@ -56,14 +56,20 @@ const router = createRouter({
 export default router
 router.beforeEach((to, from, next) => {
   const isAuthenticated = checkAuth() // 检查用户是否已登录
-  console.log('to.meta.requiresAuth', to.meta.requiresAuth)
-  console.log('isAuthenticated', isAuthenticated)
+  // console.log('to.meta.requiresAuth', to.meta.requiresAuth)
+  // console.log('isAuthenticated', isAuthenticated)
   if (to.meta.requiresAuth && !isAuthenticated) {
     // 如果需要鉴权且用户未登录，重定向到登录页面
     next('/login')
   } else {
-    // 否则，继续导航
-    next()
+    // console.log(to.path)
+    if(to.path === "/login") {
+      next('/home')
+    }else {
+      // 否则，继续导航
+      next()
+    }
+
   }
 })
 
@@ -76,7 +82,6 @@ function checkAuth() {
     return res.data.code === '0';
   })
 }
-// TODO
 // 获取 token 和 user-id 的值
 function getCookie(name) {
   const cookies = document.cookie.split(';');
