@@ -6,13 +6,13 @@
     </div>
     <button class="voice-button">录入语音</button>
     <div class="reminders-title">提醒事项</div>
-    <div class="reminder-item" v-for="item in visibleReminders" :key="item.id">
+    <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id">
       <div class="time-and-summary">
-        <div class="time">{{ item.time }}</div>
-        <div class="summary">{{ item.summary }}</div>
+        <div class="time">{{ item.target_time }}</div>
+        <div class="summary">{{ item.brief_task }}</div>
       </div>
-      <div class="full-description">{{ item.description }}</div>
-      <div class="time-left">{{ item.timeLeft }}</div>
+      <div class="full-description">{{ item.task }}</div>
+      <div class="repeat">{{ item.repeat }}</div>
       <van-switch v-model="item.enabled" />
     </div>
     <button v-if="reminders.length >= maxVisibleCount" @click="loadMore" class="load-more">
@@ -26,79 +26,87 @@ import { ref, computed } from 'vue'
 import { getCookie } from '../router/index.js'
 import {tixing_items_info, user_info} from "@/api/db.js";
 const maxVisibleCount = ref(2)
-let userName = ref('XXX') // 用户名
-let reminders = ref([
+const userName = ref("XXX") // 用户名
+const reminders = ref([
   {
-    id: 1,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 1,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   {
-    id: 2,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 2,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   {
-    id: 3,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 3,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   {
-    id: 4,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 4,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   {
-    id: 5,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 5,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   {
-    id: 6,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 6,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   {
-    id: 7,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 7,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   {
-    id: 8,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
-  },
-  {
-    id: 9,
-    time: '18:00',
-    summary: '吃晚饭',
-    description: '吃晚饭时间到了',
-    timeLeft: '30分钟后',
-    enabled: true,
+    tixing_id: 8,
+    target_time: '18:00',
+    brief_task: '吃晚饭',
+    task: '吃晚饭时间到了',
+    repeat: '每天',
+    state: true,
+    method: '短信',
+    // timeLeft: '30分钟后',
   },
   // 更多提醒事项
 ])
@@ -106,16 +114,13 @@ let reminders = ref([
 const user_id = getCookie('user_id')
 if (user_id) {
   user_info(user_id).then((res) => {
-    console.log(res)
-    console.log(res.data)
-    userName = res.data.user_name
-    console.log(userName)
+    userName.value = res.data.user_name
   })
 
 
   tixing_items_info(user_id).then((res) => {
     console.log(res)
-    reminders = res.data
+    reminders.value = res.data
   })
 
 
@@ -210,7 +215,7 @@ function loadMore() {
   text-align: center;
 }
 
-.time-left {
+.repeat {
   margin-right: 10px;
 }
 
