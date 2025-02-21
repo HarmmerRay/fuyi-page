@@ -19,3 +19,14 @@ export const tixing_items_info = (user_id) => {
     },
   })
 }
+
+export const update_tixing_state = (tixing_id,state) =>{
+  return http({
+    url: '/api/update_tixing_state',
+    method: 'POST',
+    data: {
+      tixing_id,
+      state
+    }
+  })
+}

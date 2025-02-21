@@ -77,7 +77,7 @@ router.beforeEach((to, from, next) => {
 function checkAuth() {
   // 获取 token 和 user-id
   const token = getCookie('token')
-  console.log(token)
+  // console.log(token)
   return auth_check().then((res) => {
     return res.data.code === '0';
   })

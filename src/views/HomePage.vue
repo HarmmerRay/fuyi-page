@@ -13,7 +13,8 @@
       </div>
       <div class="full-description">{{ item.task }}</div>
       <div class="repeat">{{ item.repeat }}</div>
-      <van-switch v-model="item.enabled" />
+<!--      <div>{{item.state}}</div>-->
+      <van-switch :model-value="item.state === 1" @update:model-value="switch_state(item.tixing_id,item.state)" />
     </div>
     <button v-if="reminders.length >= maxVisibleCount" @click="loadMore" class="load-more">
       加载更多...
@@ -24,7 +25,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { getCookie } from '../router/index.js'
-import {tixing_items_info, user_info} from "@/api/db.js";
+import {tixing_items_info, update_tixing_state, user_info} from "@/api/db.js";
 const maxVisibleCount = ref(2)
 const userName = ref("XXX") // 用户名
 const reminders = ref([
@@ -34,7 +35,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -44,7 +45,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -54,7 +55,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -64,7 +65,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -74,7 +75,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -84,7 +85,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -94,7 +95,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -104,7 +105,7 @@ const reminders = ref([
     brief_task: '吃晚饭',
     task: '吃晚饭时间到了',
     repeat: '每天',
-    state: true,
+    state: 0,
     method: '短信',
     // timeLeft: '30分钟后',
   },
@@ -116,16 +117,37 @@ if (user_id) {
   user_info(user_id).then((res) => {
     userName.value = res.data.user_name
   })
-
-
   tixing_items_info(user_id).then((res) => {
-    console.log(res)
+    // console.log(res)
     reminders.value = res.data
   })
 
+}
+function switch_state(tixing_id,state) {
+  // 修改state为相反状态
+  if (state === 1){
+    state = 0;
+  }else if(state === 0){
+    state = 1;
+  }
+  // 更新数据库中的state字段
+  try{
+    update_tixing_state(tixing_id,state).then((res) => {
+      if (res.data.code === 0){
+        // 修改reminders的数据状态 页面才可以响应
+        const reminderIndex = reminders.value.findIndex(item => item.tixing_id === tixing_id);
+        if (reminderIndex !== -1) {
+          reminders.value[reminderIndex].state = state;
+        }
+        // console.log(reminders.value[reminderIndex].state)
+      }
+    })
+  }catch (err){
+    // 失败保持原有状态
+    console.error('Failed to update state:', err);
+  }
 
 }
-
 const visibleReminders = computed(() => reminders.value.slice(0, maxVisibleCount.value))
 const timeOfDay = computed(() => {
   const hour = new Date().getHours()
