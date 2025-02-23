@@ -13,8 +13,11 @@
       </div>
       <div class="full-description">{{ item.task }}</div>
       <div class="repeat">{{ item.repeat }}</div>
-<!--      <div>{{item.state}}</div>-->
-      <van-switch :model-value="item.state === 1" @update:model-value="switch_state(item.tixing_id,item.state)" />
+      <!--      <div>{{item.state}}</div>-->
+      <van-switch
+        :model-value="item.state === 1"
+        @update:model-value="switch_state(item.tixing_id, item.state)"
+      />
     </div>
     <button v-if="reminders.length >= maxVisibleCount" @click="loadMore" class="load-more">
       加载更多...
@@ -25,9 +28,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { getCookie } from '../router/index.js'
-import {tixing_items_info, update_tixing_state, user_info} from "@/api/db.js";
+import { tixing_items_info, update_tixing_state, user_info } from '@/api/db.js'
 const maxVisibleCount = ref(2)
-const userName = ref("XXX") // 用户名
+const userName = ref('XXX') // 用户名
 const reminders = ref([
   {
     tixing_id: 1,
@@ -121,32 +124,30 @@ if (user_id) {
     // console.log(res)
     reminders.value = res.data
   })
-
 }
-function switch_state(tixing_id,state) {
+function switch_state(tixing_id, state) {
   // 修改state为相反状态
-  if (state === 1){
-    state = 0;
-  }else if(state === 0){
-    state = 1;
+  if (state === 1) {
+    state = 0
+  } else if (state === 0) {
+    state = 1
   }
   // 更新数据库中的state字段
-  try{
-    update_tixing_state(tixing_id,state).then((res) => {
-      if (res.data.code === 0){
+  try {
+    update_tixing_state(tixing_id, state).then((res) => {
+      if (res.data.code === 0) {
         // 修改reminders的数据状态 页面才可以响应
-        const reminderIndex = reminders.value.findIndex(item => item.tixing_id === tixing_id);
+        const reminderIndex = reminders.value.findIndex((item) => item.tixing_id === tixing_id)
         if (reminderIndex !== -1) {
-          reminders.value[reminderIndex].state = state;
+          reminders.value[reminderIndex].state = state
         }
         // console.log(reminders.value[reminderIndex].state)
       }
     })
-  }catch (err){
+  } catch (err) {
     // 失败保持原有状态
-    console.error('Failed to update state:', err);
+    console.error('Failed to update state:', err)
   }
-
 }
 const visibleReminders = computed(() => reminders.value.slice(0, maxVisibleCount.value))
 const timeOfDay = computed(() => {
@@ -166,7 +167,11 @@ function loadMore() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  width: 100%; /* 设置宽度为100% */
+  min-height: 100vh; /* 设置最小高度为视口的100% */
+  padding: 0; /* 移除内边距 */
+  margin: 0; /* 移除外边距 */
+  overflow: auto; /* 添加滚动条 */
 }
 
 .header {

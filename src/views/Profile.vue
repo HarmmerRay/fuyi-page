@@ -1,13 +1,13 @@
 <template>
   <div class="profile">
-    <div class="banner" :style="{ 'background-image': `url(${bg_img_url})` }">
+    <div class="bg_img" :style="{ 'background-image': `url(${bg_img_url})` }">
       <div class="user-info">
         <div class="avatar">
           <img :src="avatar_url" alt="用户头像" />
         </div>
         <div class="info">
           <div class="username">{{ user_name }}</div>
-          <div class="phone">{{ phone_number }}</div>
+          <div class="phone">手机：{{ phone_number }}</div>
         </div>
         <div class="more" @click="showDropdown = true">
           <i class="el-icon-more"></i>
@@ -28,24 +28,24 @@
         <img style="width: 26px" src="../../public/notifications.png" alt="" />
         <div>消息中心</div>
       </div>
-<!--      <div class="action-btn" @click="goReminders">提醒事项</div>-->
+      <!--      <div class="action-btn" @click="goReminders">提醒事项</div>-->
     </div>
 
     <div class="menu-list">
       <div class="menu-item" @click="goHelp">
-        <div><img class= "img0" src="../../public/help_center.png" alt=""/></div>
+        <div><img class="img0" src="../../public/help_center.png" alt="" /></div>
         <div class="miaoshu1">帮助中心</div>
-        <div class="jiantou"><img class="img2" src="../../public/jiantou.png" alt=""/></div>
+        <div class="jiantou"><img class="img2" src="../../public/jiantou.png" alt="" /></div>
       </div>
       <div class="menu-item" @click="goContact">
-        <div><img class= "img0" src="../../public/connection.png" alt=""/></div>
+        <div><img class="img0" src="../../public/connection.png" alt="" /></div>
         <div class="miaoshu1">联系我们</div>
-        <div class="jiantou"><img class="img2" src="../../public/jiantou.png" alt=""/></div>
+        <div class="jiantou"><img class="img2" src="../../public/jiantou.png" alt="" /></div>
       </div>
       <div class="menu-item" @click="logout">
-        <div><img class= "img0" src="../../public/logout.png" alt=""/></div>
+        <div><img class="img0" src="../../public/logout.png" alt="" /></div>
         <div class="miaoshu1">退出登录</div>
-        <div class="jiantou"><img class="img2" src="../../public/jiantou.png" alt=""/></div>
+        <div class="jiantou"><img class="img2" src="../../public/jiantou.png" alt="" /></div>
       </div>
     </div>
   </div>
@@ -53,8 +53,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import {user_info} from "@/api/db.js";
-import {getCookie} from "@/router/index.js";
+import { user_info } from '@/api/db.js'
+import { getCookie } from '@/router/index.js'
 
 const bg_img_url = ref('')
 const avatar_url = ref('')
@@ -62,15 +62,24 @@ const user_name = ref('')
 const phone_number = ref('')
 const showDropdown = ref(false)
 
-user_info(getCookie("user_id")).then((res) => {
+user_info(getCookie('user_id')).then((res) => {
   console.log(res)
   bg_img_url.value = res.data.bg_img_url
   avatar_url.value = res.data.avatar_url
   user_name.value = res.data.user_name
-  phone_number.value = res.data.phone_number
+  phone_number.value = mask_phone_number(res.data.phone_number)
 })
 
-const handlePrivacy = () => {
+function mask_phone_number(phone_number) {
+  // 检查输入是否为11位手机号
+  if (phone_number.length !== 11) {
+    throw new Error('Invalid phone number. It should be 11 digits long.')
+  }
+  // 手机号前三位，中间四位替换为星号，后四位
+  return phone_number.substring(0, 3) + '****' + phone_number.substring(7)
+}
+
+function handlePrivacy() {
   showDropdown.value = false
   // 处理隐私政策
 }
@@ -107,14 +116,14 @@ const logout = () => {
 
 <style scoped>
 .profile {
-  height: 177px;
-  background-image: url('../../public/background_pic.png');
-  background-size: 100vw 200px;
-  background-repeat: no-repeat;
-  background-position: left top;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  background-color: #f6f6f6;
 }
 
-.banner {
+.bg_img {
   height: 20vh;
   width: 100%;
   background-size: cover;
@@ -133,11 +142,12 @@ const logout = () => {
 }
 
 .avatar {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   overflow: hidden;
   margin-right: 15px;
+  position: relative; /* 添加此行 */
 }
 
 .avatar img {
@@ -147,18 +157,22 @@ const logout = () => {
 }
 
 .info {
-  flex: 1;
+  position: absolute;
+  top: 60px; /* 头像高度为60px */
+  left: 0;
+  margin-right: 15px;
+  width: 100%;
 }
 
 .username {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
-  color: #fff;
+  color: #000000;
 }
 
 .phone {
   font-size: 14px;
-  color: #eee;
+  color: rgba(170, 170, 170, 0.6);
   margin-top: 5px;
 }
 
@@ -219,7 +233,6 @@ const logout = () => {
   .img0 {
     width: 22px;
     height: 21px;
-
   }
 
   .img2 {
@@ -228,7 +241,6 @@ const logout = () => {
     margin: 5px 0 5px 0;
   }
 }
-
 
 .tabs1 {
   padding: 12px 16px;
@@ -242,7 +254,6 @@ const logout = () => {
   .img0 {
     width: 22px;
     height: 21px;
-
   }
 
   .img2 {
@@ -255,7 +266,10 @@ const logout = () => {
 .miaoshu1 {
   margin-left: 5px;
   padding-top: 1px;
-  font-family: PingFang SC, PingFang SC, sans-serif;
+  font-family:
+    PingFang SC,
+    PingFang SC,
+    sans-serif;
   font-weight: normal;
   font-size: 15px;
   color: #333333;

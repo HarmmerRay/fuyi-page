@@ -7,26 +7,6 @@ import { RouterView } from 'vue-router'
 </template>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-}
-
-#app {
-  height: 100%;
-}
-
 /* 隐藏滚动条但保持可滚动 */
 ::-webkit-scrollbar {
   display: none;
@@ -35,11 +15,6 @@ body {
 header {
   line-height: 1.5;
   max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
 }
 
 nav {

@@ -6,15 +6,13 @@ import Community from '../views/Community.vue'
 import Profile from '../views/Profile.vue'
 import NoBarLayout from '@/layouts/NoBarLayout.vue'
 import { auth_check } from '@/api/login'
+import {ref} from "vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
   {
     path: '/',
     redirect: '/login',
-  },
-  {
-    path: '/',
     component: NoBarLayout,
     children: [
       {
@@ -55,21 +53,20 @@ const router = createRouter({
 
 export default router
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = checkAuth() // 检查用户是否已登录
-  // console.log('to.meta.requiresAuth', to.meta.requiresAuth)
-  // console.log('isAuthenticated', isAuthenticated)
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    // 如果需要鉴权且用户未登录，重定向到登录页面
-    next('/login')
+  console.log('to.meta.requiresAuth', to.meta.requiresAuth,to.path)
+  // console.log(to.path)
+  if (to.meta.requiresAuth) {
+    checkAuth().then((res) => {
+      console.log('res:',res,to.path)
+      if (res){
+        next()
+      }else{
+        console.log("next(/login)",to.path)
+        next('/login')
+      }
+    })// 检查用户是否已登录
   } else {
-    // console.log(to.path)
-    if(to.path === "/login") {
-      next('/home')
-    }else {
-      // 否则，继续导航
-      next()
-    }
-
+    next()
   }
 })
 
