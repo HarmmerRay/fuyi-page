@@ -16,6 +16,7 @@
     "js-md5": "^0.8.3",
     "pinia": "^2.3.1",
     "pinia-plugin-persistedstate": "^4.2.0",
+    "postcss-px-to-viewport": "^1.1.1",
     "vant": "^4.9.17",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"

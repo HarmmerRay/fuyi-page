@@ -6,66 +6,90 @@ import { RouterView } from 'vue-router'
   <router-view></router-view>
 </template>
 
-<style>
-/* 隐藏滚动条但保持可滚动 */
-::-webkit-scrollbar {
-  display: none;
+<style lang="less">
+
+.van-nav-bar .van-icon {
+  color: black !important;
+}
+:root .van-tabs__line {
+  bottom: 21px;
+  background: #ff7652;
+  height: 4px;
+  width: 14px;
+}
+:root .van-tabs__line {
+  --van-tabs-bottom-bar-width: 10px;
+  // margin-top:3px;
+}
+//自定义字体
+//@font-face {
+//  font-family: 'MiSans-Semibold';
+//  src: url('/fonts/xmMiSans-Semibold.ttf') format('truetype');
+//}
+
+
+:root .van-tabs__nav--line {
+  background: #f8f8f8;
+  padding-bottom: 8px;
+}
+:root .van-tab {
+  font-size: 18px;
+  margin-right: 6px;
+  line-height: 25px;
+  height: 25px;
+}
+//:root .van-ellipsis {
+//  font-size: 17px;
+//  color: #000000;
+//}
+:root .van-icon {
+  border-radius: 2px;
+}
+.el-dropdown-menu__item:not(.is-disabled):focus {
+  color: #ff7652;
+  background-color: rgba(255, 118, 82, 0.01);
+}
+:root .van-icon-photograph:before {
+  content: '';
+  width: 64px;
+  height: 64px;
+  background: url('public/shijijia.png') no-repeat;
+  background-size: 64px 64px;
+  // src: ;
+}
+//:root .van-uploader__wrapper {
+//  flex-direction: row-reverse;
+//}
+#app {
+  font-family: "PingFang SC, PingFang SC ", sans-serif;
+}
+body{
+  overflow-y: scroll;
+  scroll-behavior: smooth;
 }
 
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+html{
+  overflow-x: hidden;
+  //soverflow-y:scroll;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+//选品广场排序样式
+:root {
+  --van-popover-action-width: auto !important;
+  --van-popover-action-icon-size:16px !important;
+  --van-popover-action-height: 4.3vh!important;
+}
+:root .van-popover__action-icon {
+  color: #EE761E !important;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
+//// 添加媒体查询，当视口宽度大于375px时应用以下样式规则
+//@media (min-width: 400px) {
+//  html, body {
+//    width: 50vw;
+//    height: 100vh;
+//    margin: 0 auto; /* 居中显示 */
+//  }
+//}
 </style>
