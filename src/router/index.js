@@ -5,14 +5,13 @@ import HomePage from '../views/HomePage.vue'
 import Community from '../views/Community.vue'
 import Profile from '../views/Profile.vue'
 import NoBarLayout from '@/layouts/NoBarLayout.vue'
-import { auth_check } from '@/api/login'
-import {ref} from "vue";
+import {check_auth} from "@/util/auth.js";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
   {
     path: '/',
-    redirect: '/login',
+    redirect: '/home',
     component: NoBarLayout,
     children: [
       {
@@ -53,10 +52,11 @@ const router = createRouter({
 
 export default router
 router.beforeEach((to, from, next) => {
+  // 页面鉴权跳转 + 有cookie token自动登录
+  // 不可以有 to.path === '/login' 的判断做自动登录，会进入页面跳转的无限循环。页面渲染显示白色。
   console.log('to.meta.requiresAuth', to.meta.requiresAuth,to.path)
-  // console.log(to.path)
   if (to.meta.requiresAuth) {
-    checkAuth().then((res) => {
+    check_auth().then((res) => {
       console.log('res:',res,to.path)
       if (res){
         next()
@@ -70,23 +70,4 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-// 检查用户是否已登录的函数
-function checkAuth() {
-  // 获取 token 和 user-id
-  const token = getCookie('token')
-  // console.log(token)
-  return auth_check().then((res) => {
-    return res.data.code === '0';
-  })
-}
-// 获取 token 和 user-id 的值
-export function getCookie(name) {
-  const cookies = document.cookie.split(';');
-  for (let cookie of cookies) {
-    const [cookieName, cookieValue] = cookie.trim().split('=');
-    if (cookieName === name) {
-      return decodeURIComponent(cookieValue);
-    }
-  }
-  return null;
-}
+

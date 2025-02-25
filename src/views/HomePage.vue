@@ -4,7 +4,7 @@
       <img src="../../public/default_avatar.jpg" alt="用户头像" class="avatar" />
       <div class="welcome-message">欢迎回来，{{ timeOfDay }}好{{ userName }}</div>
     </div>
-    <button class="voice-button">录入语音</button>
+    <button class="voice-button" @click="audio_record">录入语音</button>
     <div class="reminders-title">提醒事项</div>
     <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id">
       <div class="time-and-summary">
@@ -27,8 +27,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { getCookie } from '../router/index.js'
+import router from '../router/index.js'
 import { tixing_items_info, update_tixing_state, user_info } from '@/api/db.js'
+import {check_auth, get_cookie} from "@/util/auth.js";
+import {showToast} from "vant";
 const maxVisibleCount = ref(2)
 const userName = ref('XXX') // 用户名
 const reminders = ref([
@@ -114,8 +116,8 @@ const reminders = ref([
   },
   // 更多提醒事项
 ])
-// todo 根据cookie中的user_id查询用户名及提醒事项信息
-const user_id = getCookie('user_id')
+// 根据cookie中的user_id查询用户名及提醒事项信息
+const user_id = get_cookie('user_id')
 if (user_id) {
   user_info(user_id).then((res) => {
     userName.value = res.data.user_name
@@ -125,6 +127,7 @@ if (user_id) {
     reminders.value = res.data
   })
 }
+
 function switch_state(tixing_id, state) {
   // 修改state为相反状态
   if (state === 1) {
@@ -149,6 +152,19 @@ function switch_state(tixing_id, state) {
     console.error('Failed to update state:', err)
   }
 }
+function audio_record() {
+  // 检测用户是否登录
+  check_auth().then((res) => {
+    if (res) {
+      // 录入语音  1、调用手机语音录入api 2、将相关语音上传到云存储 3、写入数据库语音地址
+      showToast('录入语音')
+    }else{
+      showToast('请先登录')
+      router.push('/login');
+    }
+  })
+}
+
 const visibleReminders = computed(() => reminders.value.slice(0, maxVisibleCount.value))
 const timeOfDay = computed(() => {
   const hour = new Date().getHours()
@@ -156,6 +172,7 @@ const timeOfDay = computed(() => {
   else if (hour < 18) return '中午'
   else return '晚上'
 })
+
 
 function loadMore() {
   maxVisibleCount.value += maxVisibleCount.value // 每次点击加载更多，增加6条记录

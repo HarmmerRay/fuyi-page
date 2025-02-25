@@ -54,7 +54,7 @@
 <script setup>
 import { ref } from 'vue'
 import { user_info } from '@/api/db.js'
-import { getCookie } from '@/router/index.js'
+import {get_cookie} from "@/util/auth.js";
 
 const bg_img_url = ref('')
 const avatar_url = ref('')
@@ -62,7 +62,7 @@ const user_name = ref('')
 const phone_number = ref('')
 const showDropdown = ref(false)
 
-user_info(getCookie('user_id')).then((res) => {
+user_info(get_cookie('user_id')).then((res) => {
   console.log(res)
   bg_img_url.value = res.data.bg_img_url
   avatar_url.value = res.data.avatar_url
