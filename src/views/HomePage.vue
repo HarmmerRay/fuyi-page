@@ -156,7 +156,7 @@ function audio_record() {
   // 检测用户是否登录
   check_auth().then((res) => {
     if (res) {
-      // 录入语音  1、调用手机语音录入api 2、将相关语音上传到云存储 3、写入数据库语音地址
+      // todo 录入语音  1、调用手机语音录入api 2、将相关语音上传到云存储 3、写入数据库语音地址
       showToast('录入语音')
     }else{
       showToast('请先登录')

@@ -5,12 +5,12 @@
         <div class="avatar">
           <img :src="avatar_url" alt="用户头像" />
         </div>
-        <div class="info">
+        <div>
           <div class="username">{{ user_name }}</div>
           <div class="phone">手机：{{ phone_number }}</div>
         </div>
         <div class="more" @click="showDropdown = true">
-          <i class="el-icon-more"></i>
+          <img data-v-7f755a55="" src="../assets/three_points_grey.png" style="width: 16px; height: 16px; margin-right: 5px; margin-top: 20px;">
           <div class="dropdown" v-if="showDropdown">
             <div class="dropdown-item" @click="handlePrivacy">隐私政策</div>
             <div class="dropdown-item" @click="handleLogoff">注销账号</div>
@@ -122,7 +122,6 @@ const logout = () => {
   overflow: auto;
   background-color: #f6f6f6;
 }
-
 .bg_img {
   height: 20vh;
   width: 100%;
@@ -133,20 +132,19 @@ const logout = () => {
 
 .user-info {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  margin-top: 15vh;
+  margin-left: 6vw;
+  width: 100vw;
   display: flex;
   align-items: center;
-  padding: 15px;
 }
 
 .avatar {
-  width: 80px;
-  height: 80px;
+  width: 22vw;
+  height: 22vw;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 15px;
+  margin-right: 5vw;
   position: relative; /* 添加此行 */
 }
 
@@ -156,15 +154,8 @@ const logout = () => {
   object-fit: cover;
 }
 
-.info {
-  position: absolute;
-  top: 60px; /* 头像高度为60px */
-  left: 0;
-  margin-right: 15px;
-  width: 100%;
-}
-
 .username {
+  margin-top: 40px;
   font-size: 20px;
   font-weight: bold;
   color: #000000;
@@ -172,20 +163,21 @@ const logout = () => {
 
 .phone {
   font-size: 14px;
-  color: rgba(170, 170, 170, 0.6);
+  color: rgba(0, 0, 0, 0.6);
   margin-top: 5px;
 }
 
 .more {
+  color: #000000;
   position: relative;
-  padding: 10px;
+  margin-left: 25vw;
 }
 
 .dropdown {
   position: absolute;
   right: 0;
   top: 100%;
-  background: #fff;
+  background: #eeeeee;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   z-index: 1;
@@ -197,13 +189,15 @@ const logout = () => {
 }
 
 .dropdown-item:hover {
-  background: #f5f5f5;
+  background: #000000;
 }
 
 .quick-actions {
   display: flex;
   justify-content: space-around;
+  margin-top: 8vh;
   padding: 20px 0;
+  border-top: 1px solid #eeeeee;
   border-bottom: 1px solid #eee;
 }
 
@@ -211,7 +205,6 @@ const logout = () => {
   text-align: center;
   cursor: pointer;
 }
-
 .menu-list {
   color: #333333;
   font-size: 12px;
