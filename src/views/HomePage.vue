@@ -9,9 +9,9 @@
     <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id">
       <div class="time-and-summary">
         <div class="time">{{ item.target_time }}</div>
-        <div class="summary">{{ item.brief_task }}</div>
+<!--        <div class="summary">{{ item.brief_task }}</div>-->
       </div>
-      <div class="full-description">{{ item.task }}</div>
+      <div class="full-description">{{ item.brief_task }}</div>
       <div class="repeat">{{ item.repeat }}</div>
       <!--      <div>{{item.state}}</div>-->
       <van-switch
@@ -124,6 +124,7 @@ if (user_id) {
   })
   tixing_items_info(user_id).then((res) => {
     // console.log(res)
+    // 如果res.data中的task字段内容超过
     reminders.value = res.data
   })
 }
@@ -199,10 +200,11 @@ function loadMore() {
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 20vw;
+  height: 20vw;
   border-radius: 50%;
   margin-right: 10px;
+  margin-left: 5vw;
 }
 
 .welcome-message {
@@ -225,8 +227,9 @@ function loadMore() {
 }
 
 .reminders-title {
-  align-self: flex-start;
-  margin-top: 20px;
+  margin-left: 20vw;
+  width: 100%;
+  margin-top: 15px;
   font-size: 20px;
   font-weight: bold;
 }
@@ -237,16 +240,19 @@ function loadMore() {
   justify-content: space-between;
   width: 100%;
   margin-top: 10px;
+  margin-right: 6vw;
 }
 
 .time-and-summary {
   display: flex;
   flex-direction: column;
+  width: 40vw;
+  align-items: center;
 }
 
 .time {
-  font-size: 16px;
-  color: #666;
+  font-size: 26px;
+  color: #000000;
 }
 
 .summary {
@@ -256,7 +262,7 @@ function loadMore() {
 
 .full-description {
   flex: 1;
-  text-align: center;
+  text-align: left;
 }
 
 .repeat {
