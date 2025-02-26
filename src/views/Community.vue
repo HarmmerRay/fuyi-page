@@ -1,10 +1,10 @@
 <template>
   <div class="community">
     <div class="search-and-post">
-      <van-search v-model="searchQuery" placeholder="搜索资讯" />
+      <van-search v-model="search_query" placeholder="搜索资讯" />
       <img src="@/assets/publish.png" alt="发布" @click="goToPost" class="publish-icon" />
     </div>
-    <van-tabs v-model="activeTab" @click="fetchData">
+    <van-tabs v-model="active_tab" @click="fetch_data">
       <van-tab title="附近"></van-tab>
     </van-tabs>
     <div class="news-list">
