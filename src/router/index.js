@@ -6,6 +6,7 @@ import Community from '../views/Community.vue'
 import Profile from '../views/Profile.vue'
 import NoBarLayout from '@/layouts/NoBarLayout.vue'
 import {check_auth} from "@/util/auth.js";
+import ArticleDetail from "@/views/ArticleDetail.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -19,6 +20,11 @@ const routes = [
         name: 'LoginPage',
         component: LoginPage,
       },
+      {
+        path: 'article_detail',
+        name: 'ArticleDetail',
+        component: ArticleDetail,
+      }
     ],
   },
   {
