@@ -63,13 +63,8 @@
                 <p>发布于: {{ item.position }}</p>
               </van-col>
               <van-col span="3">
-                <div class="share-container" @click.stop="handleShareClick(item)">
-                  <van-icon
-                    :name="item.isShared ? 'share-blue' : 'share-gray'"
-                    class-prefix="custom-icon"
-                    class="share-icon"
-                    size="20px"
-                  />
+                <div class="share-container" @click.stop="handleShareClick(item)" :class="{ 'active': isActive }">
+                  <van-icon class="share-icon"  size="20px"/>
                   <!-- 分享菜单 -->
                   <div v-if="showShareMenu" class="share-menu">
                     <div class="menu-item" @click="shareToWechat(item)">
@@ -83,6 +78,7 @@
                   </div>
                 </div>
               </van-col>
+
               <van-col span="4">
                 <p>评论: {{ item.comment_count }}</p>
               </van-col>
@@ -127,10 +123,8 @@ const items = ref([]);
 const showShareMenu = ref(false);
 const currentShareItem = ref(null);
 const handleShareClick = (item) => {
-  this.currentShareItem = item
-  this.showShareMenu = !this.showShareMenu
-  // 更新分享状态
-  this.$set(item, 'isShared', !item.isShared)
+  currentShareItem.value = item
+  showShareMenu.value = !(showShareMenu.value)
 
   // 初始化微信分享（需要提前注入配置）
   this.initWechatShare(item)
