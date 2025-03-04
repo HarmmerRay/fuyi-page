@@ -97,10 +97,6 @@ const go_reminders = () => {
   // 跳转到提醒事项
 }
 
-const goMessages = () => {
-  // 跳转到消息中心
-}
-
 const goHelp = () => {
   // 跳转到帮助中心
 }
@@ -111,6 +107,16 @@ const goContact = () => {
 
 const logout = () => {
   // 处理退出登录
+  // 清空本地coockie，并跳转至/login登录界面
+  localStorage.clear()
+  sessionStorage.clear()
+  // 清除所有的Cookies
+  document.cookie.split(";").forEach(cookie => {
+    document.cookie = cookie
+      .trim()
+      .split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/"; // 设置过期时间为过去的时间点，使Cookie失效 [ty-reference](13)
+  });
+  window.location.href = '/login'
 }
 </script>
 
@@ -140,8 +146,8 @@ const logout = () => {
 }
 
 .avatar {
-  width: 22vw;
-  height: 22vw;
+  width: 16vw;
+  height: 16vw;
   border-radius: 50%;
   overflow: hidden;
   margin-right: 5vw;

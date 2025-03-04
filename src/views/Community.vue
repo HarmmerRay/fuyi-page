@@ -45,8 +45,9 @@
             <p class="content">{{ item.content.slice(0, 200) }}...</p>
 
             <!-- 图片 -->
-            <van-row gutter="10" v-if="item.images.length > 0"  class="image-row">
-              <van-col v-for="(image, imgIndex) in item.images.slice(0, 3)" :key="imgIndex"  class="image-col" :style="getImageContainerStyle(image)">
+            <van-row gutter="10" v-if="item.images.length > 0" class="image-row">
+              <van-col v-for="(image, imgIndex) in item.images.slice(0, 3)" :key="imgIndex" class="image-col"
+                       :style="getImageContainerStyle(image)">
                 <van-image
                   fit="cover"
                   width="100%"
@@ -59,34 +60,41 @@
 
             <!-- 分享按钮、评论数、点赞数、浏览数 -->
             <van-row type="flex">
-              <van-col style="text-align: left;font-size: 14px;color: #999">
+              <van-col span="6" style="text-align: left;font-size: 14px;color: #999">
                 <p>发布于: {{ item.position }}</p>
               </van-col>
-              <van-col span="3">
-                <div class="share-container" @click.stop="handleShareClick(item)" :class="{ 'active': isActive }">
-                  <van-icon class="share-icon"  size="20px"/>
+              <van-col span="5">
+                <p>评论: {{ item.comment_count }}</p>
+              </van-col>
+              <van-col span="5">
+                <p>点赞: {{ item.like_count }}</p>
+              </van-col>
+              <van-col span="6">
+                <p>浏览: {{ item.view_count }}</p>
+              </van-col>
+              <van-col>
+                <div class="overlay" v-if="isOverlayVisible" @click="handleOverlayClick"></div>
+                <div class="share-container" :class="{ 'active': isActive }" @click.stop="handleShareClick">
+                  <!-- 使用 img 标签实现图标切换 -->
+                  <img
+                    class="share-icon"
+                    :src="isActive ? blueIcon : greyIcon"
+                    alt="分享按钮"
+                    @click.stop="handleShareClick"
+                  />
+
                   <!-- 分享菜单 -->
                   <div v-if="showShareMenu" class="share-menu">
-                    <div class="menu-item" @click="shareToWechat(item)">
+                    <div class="menu-item" @click.stop="shareToWechat(item)">
                       <img src="@/assets/wechat-icon.png" alt="微信好友">
                       <span>微信好友</span>
                     </div>
-                    <div class="menu-item" @click="shareToMoment(item)">
+                    <div class="menu-item" @click.stop="shareToMoment(item)">
                       <img src="@/assets/moment-icon.png" alt="朋友圈">
                       <span>朋友圈</span>
                     </div>
                   </div>
                 </div>
-              </van-col>
-
-              <van-col span="4">
-                <p>评论: {{ item.comment_count }}</p>
-              </van-col>
-              <van-col span="4">
-                <p>点赞: {{ item.like_count }}</p>
-              </van-col>
-              <van-col span="4">
-                <p>浏览: {{ item.view_count }}</p>
               </van-col>
             </van-row>
           </div>
@@ -103,7 +111,6 @@
             </van-loading>
           </div>
         </template>
-
       </van-list>
 
     </div>
@@ -120,19 +127,34 @@ const finished = ref(false);
 const items = ref([]);
 
 // 分享功能
+import greyIcon from '@/assets/share_grey.png' // 确保路径正确
+import blueIcon from '@/assets/share_blue.png'
+import {nearby_news_info} from "@/api/db.js";
 const showShareMenu = ref(false);
+const isActive = ref(false);
+const isOverlayVisible = ref(false);
 const currentShareItem = ref(null);
+
 const handleShareClick = (item) => {
   currentShareItem.value = item
+  isActive.value = !(isActive.value);
   showShareMenu.value = !(showShareMenu.value)
-
+  isOverlayVisible.value = !(isOverlayVisible.value)
   // 初始化微信分享（需要提前注入配置）
-  this.initWechatShare(item)
+  initWechatShare(item)
 }
+const handleOverlayClick = () => {
+  if (isOverlayVisible.value) {
+    showShareMenu.value = false
+    isActive.value = false
+    isOverlayVisible.value = false
+  }
+}
+
 async function initWechatShare(item) {
   try {
     // 获取微信签名配置
-    const { appId, timestamp, nonceStr, signature } = await getWechatConfig()
+    const {appId, timestamp, nonceStr, signature} = await getWechatConfig()
 
     wx.config({
       debug: false, // 生产环境关闭
@@ -172,6 +194,7 @@ async function initWechatShare(item) {
     console.error('微信配置失败:', error)
   }
 }
+
 const shareToWechat = (item) => {
   // 直接调用微信API
   wx.invoke('shareToWechat', {
@@ -195,19 +218,52 @@ const shareToMoment = (item) => {
 
 const trackShare = (type) => {
   // 埋点逻辑
-  this.$ga.event('Share',type,currentShareItem.value.id)
+  this.$ga.event('Share', type, currentShareItem.value.id)
 }
 const go_to_post = () => {
 
 
 }
+// todo 获取user_position，目前页面渲染的资讯item 的 index
+const user_position = ref("北京")
+if ("geolocation" in navigator) {
+  navigator.geolocation.getCurrentPosition((position) => {
+    // 成功回调
+    const latitude = position.coords.latitude;  // 纬度
+    const longitude = position.coords.longitude; // 经度
+    const accuracy = position.coords.accuracy;   // 精度（米）
+    console.log("定位成功：", {latitude, longitude, accuracy});
+  }, (error) => {
+    // 失败回调
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        console.error("用户拒绝授权");
+        break;
+      case error.POSITION_UNAVAILABLE:
+        console.error("无法获取位置");
+        break;
+      case error.TIMEOUT:
+        console.error("请求超时");
+        break;
+    }
+  }, {
+    enableHighAccuracy: true,  // 是否高精度模式（GPS）
+    timeout: 10000,            // 超时时间（毫秒）
+    maximumAge: 30000          // 允许使用缓存位置的最大时间
+  });
+} else {
+  console.error("浏览器不支持定位功能");
+}
+const index = ref(0)
 const fetchData = function () {
+  // todo 真实从服务器获取数据
+  nearby_news_info()
   // 模拟从服务器获取数据
   return [
     {
       id: 1,
       avatar: 'https://fuyi-pingtai.oss-cn-beijing.aliyuncs.com/avatar/17af5fe80fb1844b3fd48941.png',
-      username: '蓝球蓝球蓝球蓝球蓝球蓝球',
+      username: '蓝球',
       publish_date: '2023-04-02',
       content: '看了下直播回放，雷军这人，在营销上真的没有对手。[哭泣][哭泣]\n' +
         '别人家开发布会，都是请明星撑场子，讲参数、介绍特色，雷总营销讲情怀：从湖北状元到卡里就剩下40亿的凡尔赛人生。\n' +
@@ -235,8 +291,8 @@ const fetchData = function () {
 };
 
 const go_detail = function (item) {
-    // item_id是备着从数据库查询数据  实际上只是通过浏览器的localStorage中
-  localStorage.setItem("item_"+item.id, JSON.stringify(item));
+  // item_id是备着从数据库查询数据  实际上只是通过浏览器的localStorage中
+  localStorage.setItem("item_" + item.id, JSON.stringify(item));
   this.$router.push(`/article_detail/${item.id}`);
 }
 const on_load = () => {
@@ -247,11 +303,12 @@ const on_load = () => {
       finished.value = true;
     } else {
       items.value = items.value.concat(newData);
+      index.value = index.value + items.value.length;
     }
     loading.value = false;
   }, 1000);
 }
-const getImageContainerStyle = (image)=>{
+const getImageContainerStyle = (image) => {
   const ratio = image.height / image.width
   return {
     // 基础宽度（根据列布局自动计算）
@@ -260,7 +317,7 @@ const getImageContainerStyle = (image)=>{
 }
 
 // 动态获取图片尺寸（如果未知尺寸）
-const handleImageLoad = (e,image) => {
+const handleImageLoad = (e, image) => {
   const img = e.target
   const naturalWidth = img.naturalWidth
   const naturalHeight = img.naturalHeight
@@ -315,9 +372,11 @@ const handleImageLoad = (e,image) => {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
+
 .item:hover {
   background-color: #DCDCDC;
 }
+
 .username {
   font-size: 14px;
   color: #333;
@@ -354,6 +413,7 @@ const handleImageLoad = (e,image) => {
   border-radius: 6px;
 
   /* 通过padding-bottom实现宽高比容器 */
+
   &::before {
     content: '';
     display: block;
@@ -361,6 +421,7 @@ const handleImageLoad = (e,image) => {
   }
 
   /* 根据实际比例覆盖 */
+
   &[style*="padding-bottom"]::before {
     content: none;
   }
@@ -375,64 +436,65 @@ const handleImageLoad = (e,image) => {
   }
 }
 
-/* 样式部分 */
 .share-container {
   position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.share-icon {
+  width: 20px;  /* 根据实际图片尺寸调整 */
+  height: 20px;
+  transition: transform 0.2s;
+}
+
+.share-icon:hover {
+  transform: scale(1.1);
+}
+
+.share-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);  /* 菜单显示在按钮上方 */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  min-width: 120px;
+  z-index: 1000;
+}
+
+.menu-item {
   display: flex;
   align-items: center;
-  height: 24px;
-
-  .share-icon {
-    transition: transform 0.2s ease;
-
-    &:active {
-      transform: scale(0.9);
-    }
-  }
-
-  .share-menu {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 100;
-
-    .menu-item {
-      padding: 12px;
-      display: flex;
-      align-items: center;
-      transition: background 0.2s;
-
-      &:hover {
-        background: #f5f5f5;
-      }
-
-      img {
-        width: 20px;
-        height: 20px;
-        margin-right: 8px;
-      }
-
-      span {
-        font-size: 12px;
-        color: #333;
-      }
-    }
-  }
+  padding: 8px 16px;
+  transition: background 0.2s;
 }
 
-/* 自定义图标（使用Base64编码示例） */
-.custom-icon {
-  &-share-gray {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAFPSURBVHgB7ZbRDYIwEEVfWkAHcAAHcEAHcAAHcEAHcAAHcAAHdAAHdIAO4AkvJKEkQKDl/0lO3k3S3N7ttSGE8E+UwA6YAQXQABegAho5H4E1MP0GvAA2wBE4y4NqoJZzJX0HrIHJN8D3wEEeWgFToJX2Uvq2wOIb8F7Gt3JfDVTy/0XaDlKvBoN3wF2u1XKvkntqoJL6DZgPAd/kWiX31EAl9RswHwK+ybVK7qmBSuo3YD4EfJNrldxTA5XUb8B8CPgm1yq5pwYqqd+A+RDwTa5Vck8NVFK/AfMh4Jtcq+SeGqikfgPmQ8A3uVbJPTVQSf0GzIeAb3KtkntqoJL6DZgPAd/kWiX31EAl9RswHwK+ybVK7qmBSuo3YD4EfJNrldxTA5X0Hl4BH4XZ3ZvGHlkAAAAASUVORK5CYII=');
-  }
-
-  &-share-blue {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAGWSURBVHgB7ZbRDcIgEEWfOoADOKADOKADOKADOKADOKADOKADOKADdAAPeCEJJYRAIPxPcnJvQtt3t7eFUsq/MQJ2wBwogQa4ABXQyPkI7IHJN+AFsAEOwFkeVAO1nCvpO2AFjL8Bvgd2cmMFLIBG2kvp2wDLb8B7Gd/Iv2qgkv8v0naQejUYvAPucq2We5XcUwOV1G/AfAj4JtcquacGKqnfgPkQ8E2uVXJPDVRSvwHzIeCbXKvknhqopH4D5kPAN7lWyT01UEn9BsyHgG9yrZJ7aqCS+g2YDwHf5Fol99RAJfUbMB8Cvsm1Su6pgUrqN2A+BHyTa5XcUwOV1G/AfAj4JtcquacGKqnfgPkQ8E2uVXJPDVRSvwHzIeCbXKvknhqopH4D5kPAN7lWyT01UEn9BsyHgG9yrZJ7aqCS3sMrU9HZ3YvGq6kAAAAASUVORK5CYII=');
-  }
+.menu-item:hover {
+  background: #f5f5f5;
 }
+
+.menu-item img {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+}
+
+.menu-item span {
+  font-size: 14px;
+  color: #333;
+}
+
+.overlay { /* 整个页面覆盖层（变暗）只显示菜单 */
+  position: fixed; /* 确保覆盖层固定在视口中 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+  z-index: 999; /* 确保覆盖层位于其他内容之上 */
+}
+
 </style>

@@ -7,6 +7,7 @@ import Profile from '../views/Profile.vue'
 import NoBarLayout from '@/layouts/NoBarLayout.vue'
 import {check_auth} from "@/util/auth.js";
 import ArticleDetail from "@/views/ArticleDetail.vue";
+import Test from "@/views/Test.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -46,6 +47,11 @@ const routes = [
         name: 'Profile',
         component: Profile,
         meta: { requiresAuth: true },
+      },
+      {
+        path: 'test',
+        name: 'Test',
+        component: Test
       },
     ],
   },

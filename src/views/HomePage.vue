@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="header">
-      <img src="../../public/default_avatar.jpg" alt="用户头像" class="avatar" />
+      <img :src="avatar_url" alt="用户头像" class="avatar" />
       <div class="welcome-message">欢迎回来，{{ timeOfDay }}好{{ userName }}</div>
     </div>
     <button class="voice-button" @click="audio_record">录入语音</button>
@@ -116,16 +116,23 @@ const reminders = ref([
   },
   // 更多提醒事项
 ])
+const avatar_url = ref('../../public/default_avatar.jpg')
 // 根据cookie中的user_id查询用户名及提醒事项信息
 const user_id = get_cookie('user_id')
 if (user_id) {
   user_info(user_id).then((res) => {
     userName.value = res.data.user_name
+    avatar_url.value = res.data.avatar_url
   })
   tixing_items_info(user_id).then((res) => {
     // console.log(res)
     // 如果res.data中的task字段内容超过
-    reminders.value = res.data
+    if (res.data === null){
+      reminders.value = []
+    }else {
+      reminders.value = res.data
+    }
+
   })
 }
 
@@ -199,12 +206,14 @@ function loadMore() {
   width: 100%;
 }
 
-.avatar {
-  width: 20vw;
-  height: 20vw;
-  border-radius: 50%;
-  margin-right: 10px;
-  margin-left: 5vw;
+.header .avatar {
+  margin: 16px 22px;
+  width: 60px; /* 设置头像的宽度 */
+  height: 60px; /* 设置头像的高度 */
+  border-radius: 50%; /* 将头像裁剪为圆形 */
+  object-fit: cover; /* 确保图片按比例缩放并覆盖整个容器 */
+  object-position: center; /* 确保图片的中心部分显示在容器中 */
+  display: block; /* 避免img标签默认的inline-block带来的额外间距 */
 }
 
 .welcome-message {
