@@ -19,9 +19,17 @@
         @update:model-value="switch_state(item.tixing_id, item.state)"
       />
     </div>
-    <button v-if="reminders.length >= maxVisibleCount" @click="loadMore" class="load-more">
-      加载更多...
-    </button>
+<!--    <button v-if="reminders.length >= maxVisibleCount" @click="loadMore" class="load-more">-->
+<!--      加载更多...-->
+<!--    </button>-->
+    <div class="add-reminder-button" :class="{ 'active': isActive }" @click.stop="addReminder">
+      <img
+        class="add-reminder-icon"
+        :src="isActive ? blueIcon : greyIcon"
+        alt="分享按钮"
+        @click.stop="addReminder"
+      />
+    </div>
   </div>
 </template>
 
@@ -31,7 +39,15 @@ import router from '../router/index.js'
 import { tixing_items_info, update_tixing_state, user_info } from '@/api/db.js'
 import {check_auth, get_cookie} from "@/util/auth.js";
 import {showToast} from "vant";
-const maxVisibleCount = ref(2)
+import blueIcon from "@/assets/add_reminder_blue.png";
+import greyIcon from "@/assets/add_reminder_grey.png";
+const isActive = ref(false);
+const addReminder = () => {
+    isActive.value = !(isActive.value);
+    // todo 跳转到添加提醒事项的页面
+    router.push(`/add_reminders`);
+}
+const maxVisibleCount = ref(20)
 const userName = ref('XXX') // 用户名
 const reminders = ref([
   {
@@ -302,5 +318,17 @@ function loadMore() {
 .load-more:active {
   transform: translateY(0); /* 点击时恢复原位 */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 点击时阴影恢复 */
+}
+
+.add-reminder-button {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.add-reminder-icon {
+  width: 50px;  /* 根据实际图片尺寸调整 */
+  height: 50px;
+  transition: transform 0.2s;
 }
 </style>

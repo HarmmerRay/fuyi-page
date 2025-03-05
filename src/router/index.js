@@ -8,6 +8,7 @@ import NoBarLayout from '@/layouts/NoBarLayout.vue'
 import {check_auth} from "@/util/auth.js";
 import ArticleDetail from "@/views/ArticleDetail.vue";
 import Test from "@/views/Test.vue";
+import AddReminders from "@/views/AddReminders.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -25,6 +26,11 @@ const routes = [
         path: 'article_detail',
         name: 'ArticleDetail',
         component: ArticleDetail,
+      },
+      {
+        path: 'add_reminders',
+        name: 'AddReminders',
+        component: AddReminders,
       }
     ],
   },
