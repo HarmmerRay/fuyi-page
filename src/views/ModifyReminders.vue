@@ -49,7 +49,7 @@
       >
     </div>
     <div class="intro-container">
-      <div class="intro">事项完整描述</div>
+      <div class="intro2">事项完整描述</div>
       <!-- 语音组件 -->
       <div
         class="audio-component"
@@ -60,7 +60,7 @@
           :src="audio_url ? blueAudio : greyAudio"
           class="audio-icon"
         />
-        <span class="duration">{{ audioDuration || '00:00' }}</span>
+        <span class="duration">{{ audioDuration || '00:00' }}s</span>
       </div>
     </div>
     <div class="setting-item input-item">
@@ -111,6 +111,8 @@ import {tixing_item_add, tixing_item_select_id} from "@/api/db.js";
 import {useRoute} from "vue-router";
 import blueAudio from '@/assets/audio_blue.png';
 import greyAudio from '@/assets/audio_grey.png';
+import {upload_audio} from "@/api/aliyun.js";
+import WavEncoder from "wav-encoder";
 export default {
   components: {
     [Picker.name]: Picker,
@@ -145,91 +147,74 @@ export default {
       audio.play();
     };
     async function audio_record() {
-      try {
-        // 1. 权限检查
-        const isAuth = await check_auth();
-        if (!isAuth) {
-          showToast('请先登录');
-          await router.push('/login');
-          return;
-        }
+      // 1. 权限检查
+      const isAuth = await check_auth();
+      if (!isAuth) {
+        showToast('请先登录');
+        await router.push('/login');
+        return;
+      }
 
-        // 2. 获取麦克风权限
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream);
-        let audioChunks = [];
+      // 2. 获取麦克风权限
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
 
-        // 3. 设置录音数据收集
-        mediaRecorder.ondataavailable = (e) => {
-          audioChunks.push(e.data);
-        };
+// 使用 ScriptProcessorNode 获取原始音频数据
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      let audioData = [];
 
-        // 4. 创建停止录音Promise
-        const stopRecording = new Promise((resolve) => {
-          mediaRecorder.onstop = resolve;
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+
+// 3. 收集原始音频数据
+      processor.onaudioprocess = (e) => {
+        const channelData = e.inputBuffer.getChannelData(0);
+        audioData.push(new Float32Array(channelData));
+      };
+
+// 4. 开始录音
+      showToast('正在录音中... (5秒后自动停止)');
+
+// 5. 设置5秒自动停止
+      setTimeout(async () => {
+        // 停止录音
+        processor.disconnect();
+        source.disconnect();
+
+        // 合并音频数据
+        const mergedData = mergeBuffers(audioData);
+
+        // 使用 wav-encoder 生成正确的WAV文件
+        const wavBlob = await WavEncoder.encode({
+          sampleRate: audioContext.sampleRate,
+          channelData: [mergedData]
         });
 
-        // 5. 开始录音
-        mediaRecorder.start();
-        showToast('正在录音中... (5秒后自动停止)');
-
-        // 6. 设置5秒自动停止（可根据需求修改）
-        setTimeout(() => mediaRecorder.stop(), 5000);
-        await stopRecording;
-
-        // 7. 生成音频文件
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const audioFile = new File([audioBlob], `recording_${Date.now()}.wav`, {
-          type: 'audio/wav',
+        const audioFile = new File([wavBlob], `recording_${Date.now()}.wav`, {
+          type: 'audio/wav'
         });
-
-        // 8. 上传云存储
+        console.log(audioFile);
+        // 8. 上传云存储+写入数据库
         showToast('上传中...');
-        const fileUrl = await uploadToCloud(audioFile);
-
-        // 9. 写入数据库
-        await saveToDatabase(fileUrl);
+        await upload_audio(tixing_id.value,audioFile);
 
         showToast('语音录入成功');
-      } catch (error) {
-        handleError(error);
-      } finally {
-        // 关闭麦克风访问
-        stream?.getTracks().forEach(track => track.stop());
-      }
+        // 后续上传逻辑...
+      }, 5000);
     }
+// 合并缓冲区工具函数
+    function mergeBuffers(chunks) {
+      const length = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+      const result = new Float32Array(length);
+      let offset = 0;
 
-// 示例云存储上传函数（需根据实际服务实现）
-    async function uploadToCloud(file) {
-      // 这里以伪代码示例，替换为实际云存储SDK调用：
-      // const storageRef = yourStorage.ref(`audios/${file.name}`);
-      // await storageRef.put(file);
-      // return await storageRef.getDownloadURL();
+      chunks.forEach(chunk => {
+        result.set(chunk, offset);
+        offset += chunk.length;
+      });
 
-      // 模拟上传延迟
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return `https://example.com/audios/${file.name}`;
-    }
-
-// 示例数据库存储函数（需根据实际服务实现）
-    async function saveToDatabase(url) {
-      // 这里以伪代码示例，替换为实际数据库操作：
-      // await yourDB.collection('recordings').add({ url, timestamp: new Date() });
-
-      // 模拟数据库写入
-      console.log('保存录音地址到数据库:', url);
-    }
-
-// 错误处理函数
-    function handleError(error) {
-      console.error('录音流程错误:', error);
-      if (error.name === 'NotAllowedError') {
-        showToast('需要麦克风权限，请在设置中允许访问');
-      } else if (error.name === 'NotFoundError') {
-        showToast('未找到录音设备');
-      } else {
-        showToast('操作失败，请重试');
-      }
+      return result;
     }
     // 示例时长格式化函数
     const formatDuration = (seconds) => {
@@ -275,7 +260,8 @@ export default {
         repeatText.value = res.data.repeat
         methodText.value = res.data.method
         audio_url.value = res.data.audio_url
-        audioDuration.value = res.data.audio.duration
+        audioDuration.value = res.data.audio_duration
+        console.log("audio_duration", audioDuration.value,res.data.duration);
         initScrollPosition(selectedHour.value,selectedMinute.value)
       })
     }
@@ -314,6 +300,7 @@ export default {
     };
 
     const tixing_item = ref(null)
+    const user_id = get_cookie("user_id")
     const saveAlarm = () => {
       // 保存逻辑
       // 检验提醒事项是否输入
@@ -326,7 +313,7 @@ export default {
         'task':reminderTask.value,
         'repeat':repeatText.value,
         'method':methodText.value}
-      tixing_item_add(get_cookie("user_id"),tixing_item).then((res) => {
+      tixing_item_add(user_id,tixing_item).then((res) => {
         if (res.data && res.data.code === 1){
           showToast("保存成功！")
         }else{
@@ -496,7 +483,9 @@ export default {
   margin-left: 14px;
   color: #7e7e7e;
 }
-
+.intro2{
+  color: #7e7e7e;
+}
 .intro-container {
   display: flex;
   justify-content: space-between;

@@ -61,8 +61,6 @@
 import { ref } from 'vue'
 import { user_info } from '@/api/db.js'
 import {get_cookie} from "@/util/auth.js";
-import {upload_avatar} from "@/api/aliyun.js";
-import {showToast} from "vant";
 
 const bg_img_url = ref('')
 const avatar_url = ref('')
