@@ -31,6 +31,16 @@ export const tixing_item_add = (user_id,tixing_item) => {
     }
   })
 }
+
+export const tixing_item_select_id = (tixing_item_id) => {
+  return http({
+    url: '/api/tixing_item_select_id',
+    method: 'GET',
+    params: {
+      tixing_item_id
+    }
+  })
+}
 export const update_tixing_state = (tixing_id,state) =>{
   return http({
     url: '/api/update_tixing_state',

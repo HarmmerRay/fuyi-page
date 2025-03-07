@@ -10,6 +10,7 @@
     </div>
 
     <!-- 时间选择区域 -->
+<!--    todo bug:没有循环滚动，无法选择一些时间-->
     <div class="time-picker">
       <div
         class="column hours"
@@ -38,13 +39,29 @@
       </div>
     </div>
     <!--任务事项-->
+    <div class="intro">事项简介</div>
     <div class="setting-item input-item">
       <input
         type="text"
-        v-model="reminderTask"
-        placeholder="请输入提醒事项"
+        v-model="briefTask"
+        placeholder="请编辑提醒事项简介"
         class="task-input"
       >
+    </div>
+    <div class="intro-container">
+      <div class="intro">事项完整描述</div>
+      <!-- 语音组件 -->
+      <div
+        class="audio-component"
+        :class="{ 'has-audio': audio_url }"
+        @click="handleAudioClick"
+      >
+        <img
+          :src="audio_url ? blueAudio : greyAudio"
+          class="audio-icon"
+        />
+        <span class="duration">{{ audioDuration || '00:00' }}</span>
+      </div>
     </div>
     <div class="setting-item input-item">
       <input
@@ -89,23 +106,137 @@
 import {onMounted, ref} from 'vue';
 import {Picker, Popup, showToast} from 'vant';
 import router from "@/router/index.js";
-import {get_cookie} from "@/util/auth.js";
-import {tixing_item_add} from "@/api/db.js";
-
+import {check_auth, get_cookie} from "@/util/auth.js";
+import {tixing_item_add, tixing_item_select_id} from "@/api/db.js";
+import {useRoute} from "vue-router";
+import blueAudio from '@/assets/audio_blue.png';
+import greyAudio from '@/assets/audio_grey.png';
 export default {
   components: {
     [Picker.name]: Picker,
     [Popup.name]: Popup
   },
   setup() {
+    const audio_url = ref(null)
+    const audioDuration = ref('00:00')
     const reminderTask = ref('');
-    const selectedHour = ref(6);
-    const selectedMinute = ref(3);
+    const briefTask = ref('');
+    const selectedHour = ref('');
+    const selectedMinute = ref('');
     // 原有状态保持不变
     const hoursColumn = ref(null);
     const minutesColumn = ref(null);
     const itemHeight = 50; // 每个数字项的高度
     const visibleItems = 5; // 可见项数量
+    // 添加点击处理
+    const handleAudioClick = () => {
+      if (audio_url.value) {
+        // 播放音频逻辑
+        playAudio(audio_url.value);
+      } else {
+        // 录音逻辑
+        audio_record();
+      }
+    };
+
+    // 示例播放函数
+    const playAudio = (url) => {
+      const audio = new Audio(url);
+      audio.play();
+    };
+    async function audio_record() {
+      try {
+        // 1. 权限检查
+        const isAuth = await check_auth();
+        if (!isAuth) {
+          showToast('请先登录');
+          await router.push('/login');
+          return;
+        }
+
+        // 2. 获取麦克风权限
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        let audioChunks = [];
+
+        // 3. 设置录音数据收集
+        mediaRecorder.ondataavailable = (e) => {
+          audioChunks.push(e.data);
+        };
+
+        // 4. 创建停止录音Promise
+        const stopRecording = new Promise((resolve) => {
+          mediaRecorder.onstop = resolve;
+        });
+
+        // 5. 开始录音
+        mediaRecorder.start();
+        showToast('正在录音中... (5秒后自动停止)');
+
+        // 6. 设置5秒自动停止（可根据需求修改）
+        setTimeout(() => mediaRecorder.stop(), 5000);
+        await stopRecording;
+
+        // 7. 生成音频文件
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioFile = new File([audioBlob], `recording_${Date.now()}.wav`, {
+          type: 'audio/wav',
+        });
+
+        // 8. 上传云存储
+        showToast('上传中...');
+        const fileUrl = await uploadToCloud(audioFile);
+
+        // 9. 写入数据库
+        await saveToDatabase(fileUrl);
+
+        showToast('语音录入成功');
+      } catch (error) {
+        handleError(error);
+      } finally {
+        // 关闭麦克风访问
+        stream?.getTracks().forEach(track => track.stop());
+      }
+    }
+
+// 示例云存储上传函数（需根据实际服务实现）
+    async function uploadToCloud(file) {
+      // 这里以伪代码示例，替换为实际云存储SDK调用：
+      // const storageRef = yourStorage.ref(`audios/${file.name}`);
+      // await storageRef.put(file);
+      // return await storageRef.getDownloadURL();
+
+      // 模拟上传延迟
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return `https://example.com/audios/${file.name}`;
+    }
+
+// 示例数据库存储函数（需根据实际服务实现）
+    async function saveToDatabase(url) {
+      // 这里以伪代码示例，替换为实际数据库操作：
+      // await yourDB.collection('recordings').add({ url, timestamp: new Date() });
+
+      // 模拟数据库写入
+      console.log('保存录音地址到数据库:', url);
+    }
+
+// 错误处理函数
+    function handleError(error) {
+      console.error('录音流程错误:', error);
+      if (error.name === 'NotAllowedError') {
+        showToast('需要麦克风权限，请在设置中允许访问');
+      } else if (error.name === 'NotFoundError') {
+        showToast('未找到录音设备');
+      } else {
+        showToast('操作失败，请重试');
+      }
+    }
+    // 示例时长格式化函数
+    const formatDuration = (seconds) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // 计算中间位置索引（第三个可见项）
     const calculateCenterIndex = (scrollTop) => {
@@ -125,17 +256,31 @@ export default {
     };
 
     // 初始化滚动位置
-    const initScrollPosition = () => {
+    const initScrollPosition = (hour,miniute) => {
       const scrollToPosition = (element, value) => {
         element.scrollTop = value * itemHeight - (visibleItems - 1)/2 * itemHeight;
       };
-
-      scrollToPosition(hoursColumn.value, selectedHour.value);
-      scrollToPosition(minutesColumn.value, selectedMinute.value);
+      scrollToPosition(hoursColumn.value, hour);
+      scrollToPosition(minutesColumn.value, miniute);
     };
-
+    const tixing_id = ref('')
+    const initData = () => {
+      const route = useRoute()
+      tixing_id.value = route.params.id
+      tixing_item_select_id(tixing_id.value).then((res) => {
+        selectedHour.value = res.data.target_time.split(":")[0];
+        selectedMinute.value = res.data.target_time.split(":")[1];
+        briefTask.value = res.data.brief_task
+        reminderTask.value = res.data.task
+        repeatText.value = res.data.repeat
+        methodText.value = res.data.method
+        audio_url.value = res.data.audio_url
+        audioDuration.value = res.data.audio.duration
+        initScrollPosition(selectedHour.value,selectedMinute.value)
+      })
+    }
     onMounted(() => {
-      initScrollPosition();
+      initData();
     });
 
     const showRepeatPicker = ref(false);
@@ -201,6 +346,11 @@ export default {
     }
 
     return {
+      blueAudio,
+      greyAudio,
+      audio_url,
+      audioDuration,
+      briefTask,
       reminderTask,
       selectedHour,
       selectedMinute,
@@ -216,7 +366,11 @@ export default {
       onMethodConfirm,
       saveAlarm,
       goBack,
-      handleScroll
+      handleScroll,
+      handleAudioClick,
+      playAudio,
+      formatDuration,
+      audio_record
     };
   }
 }
@@ -336,5 +490,47 @@ export default {
   background: white;
   border-radius: 8px;
   align-items: center; /* 垂直居中 */
+}
+
+.intro {
+  margin-left: 14px;
+  color: #7e7e7e;
+}
+
+.intro-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 16px;
+  margin-top: 16px;
+}
+
+.audio-component {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 15px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.audio-component.has-audio {
+  background-color: #e8f4ff;
+}
+
+.audio-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.duration {
+  font-size: 14px;
+  color: #666;
+}
+
+.has-audio .duration {
+  color: #2196f3;
 }
 </style>

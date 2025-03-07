@@ -2,8 +2,14 @@
   <div class="profile">
     <div class="bg_img" :style="{ 'background-image': `url(${bg_img_url})` }">
       <div class="user-info">
-        <div class="avatar">
-          <img :src="avatar_url" alt="用户头像" />
+        <div class="avatar-container">
+          <!-- 用户头像展示 -->
+          <div class="avatar" @click="openFileInput">
+            <img :src="avatar_url" alt="用户头像" />
+          </div>
+
+          <!-- 隐藏的文件输入框 -->
+          <input type="file" id="fileInput" style="display:none;" @change="handleFileChange" accept="image/*"/>
         </div>
         <div>
           <div class="username">{{ user_name }}</div>
@@ -55,14 +61,16 @@
 import { ref } from 'vue'
 import { user_info } from '@/api/db.js'
 import {get_cookie} from "@/util/auth.js";
+import {upload_avatar} from "@/api/aliyun.js";
+import {showToast} from "vant";
 
 const bg_img_url = ref('')
 const avatar_url = ref('')
 const user_name = ref('')
 const phone_number = ref('')
 const showDropdown = ref(false)
-
-user_info(get_cookie('user_id')).then((res) => {
+const user_id = get_cookie('user_id')
+user_info(user_id).then((res) => {
   console.log(res)
   bg_img_url.value = res.data.bg_img_url
   avatar_url.value = res.data.avatar_url
@@ -70,6 +78,26 @@ user_info(get_cookie('user_id')).then((res) => {
   phone_number.value = mask_phone_number(res.data.phone_number)
 })
 
+function openFileInput() {
+  document.getElementById('fileInput').click();
+}
+function handleFileChange(event) {
+  // showToast("处理文件改变")
+  const file = event.target.files[0];
+  if (!file) return; // 如果没有选择文件则返回
+
+  // 创建一个FileReader对象来读取文件内容
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    console.log("E:",e);
+    // 更新头像URL为本地预览
+    avatar_url.value = e.target.result;
+    // 在这里可以调用API将图片上传到服务器
+    // uploadAvatar(file,oss_path);
+    upload_avatar(user_id,avatar_url.value,'avatar/')
+  };
+  reader.readAsDataURL(file); // 以DataURL格式读取文件
+}
 function mask_phone_number(phone_number) {
   // 检查输入是否为11位手机号
   if (phone_number.length !== 11) {

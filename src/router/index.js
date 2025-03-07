@@ -9,6 +9,7 @@ import {check_auth} from "@/util/auth.js";
 import ArticleDetail from "@/views/ArticleDetail.vue";
 import Test from "@/views/Test.vue";
 import AddReminders from "@/views/AddReminders.vue";
+import ModifyReminders from "@/views/ModifyReminders.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -31,6 +32,12 @@ const routes = [
         path: 'add_reminders',
         name: 'AddReminders',
         component: AddReminders,
+      },
+      {
+        path: 'modify_reminders/:id',
+        name: 'ModifyReminders',
+        component: ModifyReminders,
+        props: router =>({id: router.params.id})
       }
     ],
   },

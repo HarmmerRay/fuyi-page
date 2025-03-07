@@ -6,7 +6,7 @@
     </div>
     <button class="voice-button" @click="audio_record">录入语音</button>
     <div class="reminders-title">提醒事项</div>
-    <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id">
+    <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id" @click="modifyReminder(item)">
       <div class="time-and-summary">
         <div class="time">{{ item.target_time }}</div>
 <!--        <div class="summary">{{ item.brief_task }}</div>-->
@@ -44,8 +44,13 @@ import greyIcon from "@/assets/add_reminder_grey.png";
 const isActive = ref(false);
 const addReminder = () => {
     isActive.value = !(isActive.value);
-    // todo 跳转到添加提醒事项的页面
     router.push(`/add_reminders`);
+}
+const modifyReminder = (item) => {
+  router.push({
+    name: 'ModifyReminders',
+    params: { id: item.tixing_id } // 假设 tixing_id 是你要传递的唯一标识符
+  });
 }
 const maxVisibleCount = ref(20)
 const userName = ref('XXX') // 用户名
@@ -266,8 +271,14 @@ function loadMore() {
   width: 100%;
   margin-top: 10px;
   margin-right: 6vw;
+  padding: 10px; /* 给item一些内边距 */
+  border-radius: 5px; /* 圆角边框 */
+  transition: background-color 0.3s ease-in-out; /* 添加过渡效果 */
 }
-
+/* 当鼠标悬停在 .reminder-item 上时应用的样式 */
+.reminder-item:hover {
+  background-color: #d0d0d0; /* 悬停时更深的颜色 */
+}
 .time-and-summary {
   display: flex;
   flex-direction: column;
