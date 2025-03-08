@@ -6,6 +6,7 @@
         <button class="close-btn" @click="goBack">×</button>
         <span class="title">事项修改</span>
       </div>
+      <button class="confirm-btn" @click="deleteAlarm">删除</button>
       <button class="confirm-btn" @click="saveAlarm">保存</button>
     </div>
 
@@ -107,7 +108,7 @@ import {onMounted, ref} from 'vue';
 import {Picker, Popup, showToast} from 'vant';
 import router from "@/router/index.js";
 import {check_auth, get_cookie} from "@/util/auth.js";
-import {tixing_item_add, tixing_item_select_id} from "@/api/db.js";
+import {delete_tixing_by_id, tixing_item_add, tixing_item_select_id} from "@/api/db.js";
 import {useRoute} from "vue-router";
 import blueAudio from '@/assets/audio_blue.png';
 import greyAudio from '@/assets/audio_grey.png';
@@ -160,23 +161,22 @@ export default {
       const audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(stream);
 
-// 使用 ScriptProcessorNode 获取原始音频数据
+      // 使用 ScriptProcessorNode 获取原始音频数据
       const processor = audioContext.createScriptProcessor(4096, 1, 1);
       let audioData = [];
 
       source.connect(processor);
       processor.connect(audioContext.destination);
 
-// 3. 收集原始音频数据
+      // 3. 收集原始音频数据
       processor.onaudioprocess = (e) => {
         const channelData = e.inputBuffer.getChannelData(0);
         audioData.push(new Float32Array(channelData));
       };
-
-// 4. 开始录音
+      // 4. 开始录音
       showToast('正在录音中... (5秒后自动停止)');
 
-// 5. 设置5秒自动停止
+      // 5. 设置5秒自动停止
       setTimeout(async () => {
         // 停止录音
         processor.disconnect();
@@ -327,7 +327,15 @@ export default {
       });
       router.back();
     };
+    const deleteAlarm = () => {
+      delete_tixing_by_id(tixing_id.value).then((res) => {
+        if (res.data && res.data.code === 1){
+          showToast("删除成功")
+          router.back();
+        }
+      })
 
+    }
     const goBack = () => {
       router.back();
     }
@@ -352,12 +360,12 @@ export default {
       onRepeatConfirm,
       onMethodConfirm,
       saveAlarm,
+      deleteAlarm,
       goBack,
       handleScroll,
       handleAudioClick,
       playAudio,
       formatDuration,
-      audio_record
     };
   }
 }

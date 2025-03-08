@@ -52,6 +52,15 @@ export const update_tixing_state = (tixing_id,state) =>{
   })
 }
 
+export const delete_tixing_by_id = (tixing_id) =>{
+  return http({
+    url: '/api/delete_tixing_by_id',
+    method: 'POST',
+    data: {
+      tixing_id,
+    }
+  })
+}
 // 雪球是：一个资讯一次请求，请求时带上当前是第几条，index
 export const nearby_news_info = (user_position,index) =>{
   return http({   // 一次返回10条
