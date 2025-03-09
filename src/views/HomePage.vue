@@ -4,7 +4,7 @@
       <img :src="avatar_url" alt="用户头像" class="avatar" />
       <div class="welcome-message">欢迎回来，{{ timeOfDay }}好{{ userName }}</div>
     </div>
-    <button class="voice-button" @click="audio_record">录入语音</button>
+    <button class="voice-button" @click="audio_record(user_id,'1')">录入语音</button>
     <div class="reminders-title">提醒事项</div>
     <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id" @click="modifyReminder(item)">
       <div class="time-and-summary">
@@ -37,10 +37,11 @@
 import { ref, computed } from 'vue'
 import router from '../router/index.js'
 import { tixing_items_info, update_tixing_state, user_info } from '@/api/db.js'
-import {check_auth, get_cookie} from "@/util/auth.js";
-import {showToast} from "vant";
+import { get_cookie} from "@/util/auth.js";
+import {audio_record} from "@/util/audio.js"
 import blueIcon from "@/assets/add_reminder_blue.png";
 import greyIcon from "@/assets/add_reminder_grey.png";
+
 const isActive = ref(false);
 const addReminder = () => {
     isActive.value = !(isActive.value);
@@ -180,18 +181,6 @@ function switch_state(tixing_id, state) {
     // 失败保持原有状态
     console.error('Failed to update state:', err)
   }
-}
-function audio_record() {
-  // 检测用户是否登录
-  check_auth().then((res) => {
-    if (res) {
-      // todo 录入语音  1、调用手机语音录入api 2、将相关语音上传到云存储 3、写入数据库语音地址
-      showToast('录入语音')
-    }else{
-      showToast('请先登录')
-      router.push('/login');
-    }
-  })
 }
 
 const visibleReminders = computed(() => reminders.value.slice(0, maxVisibleCount.value))
