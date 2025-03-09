@@ -32,7 +32,7 @@ export async function audio_record(id,type) {
     audioData.push(new Float32Array(channelData));
   };
   // 4. 开始录音
-  showToast('正在录音中... (5秒后自动停止)');
+  showToast('正在录音中... (10秒后自动停止)');
 
   // 5. 设置5秒自动停止
   setTimeout(async () => {
@@ -66,7 +66,7 @@ export async function audio_record(id,type) {
     }
 
     // 后续上传逻辑...
-  }, 5000);
+  }, 10000);
 }
 // 合并缓冲区工具函数
 function mergeBuffers(chunks) {
