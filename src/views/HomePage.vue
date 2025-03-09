@@ -17,8 +17,7 @@
       <van-switch
         :model-value="item.state === 1"
         @update:model-value="switch_state(item.tixing_id, item.state)"
-<!--        避免点击事件冒泡，点击这个还会触发父容器的@click事件-->
-        @click.stop
+        @click.stop  
       />
     </div>
 <!--    <button v-if="reminders.length >= maxVisibleCount" @click="loadMore" class="load-more">-->
