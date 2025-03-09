@@ -15,7 +15,7 @@
           <div class="username">{{ user_name }}</div>
           <div class="phone">手机：{{ phone_number }}</div>
         </div>
-        <div class="more" @click="showDropdown = true">
+        <div class="more" @click="showDropdown = !showDropdown">
           <img data-v-7f755a55="" src="../assets/three_points_grey.png" style="width: 16px; height: 16px; margin-right: 5px; margin-top: 20px;">
           <div class="dropdown" v-if="showDropdown">
             <div class="dropdown-item" @click="handlePrivacy">隐私政策</div>

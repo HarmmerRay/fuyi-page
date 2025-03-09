@@ -17,7 +17,7 @@
       <van-switch
         :model-value="item.state === 1"
         @update:model-value="switch_state(item.tixing_id, item.state)"
-        @click.stop  
+        @click.stop
       />
     </div>
 <!--    <button v-if="reminders.length >= maxVisibleCount" @click="loadMore" class="load-more">-->
