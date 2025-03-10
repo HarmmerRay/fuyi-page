@@ -11,7 +11,17 @@ export const upload_avatar = (user_id,file_base64,oss_path) => {
     },
   })
 }
-
+export const upload_bg = (user_id,file_base64,oss_path) => {
+  return http({
+    url: '/api/upload_bg',
+    method: 'POST',
+    data: {
+      user_id,
+      file_base64,
+      oss_path
+    },
+  })
+}
 export const upload_audio = (tixing_id,audioFile) => {
   const formData = new FormData()
   formData.append('audio',audioFile,audioFile.name)

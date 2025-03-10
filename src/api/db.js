@@ -1,5 +1,6 @@
 import { http } from '@/util/http'
 
+// --------------------------- 用户信息 ------------------------------
 export const user_info = (user_id) => {
   return http({
     url: '/api/user_info',
@@ -10,6 +11,23 @@ export const user_info = (user_id) => {
   })
 }
 
+export const update_user_info = (form_data) => {
+  return http({
+    url: '/api/update_user_info',
+    method: 'POST',
+    data: form_data // 直接传送过去json格式的表单数据
+  })
+}
+
+export const delete_user_info = (user_id) => {
+  return http({
+    url: '/api/delete_user_info',
+    method: 'POST',
+    data: {
+      user_id
+    }
+  })
+}
 // ---------------------- 提醒事项 ------------------------------
 export const tixing_items_info = (user_id) => {
   return http({

@@ -49,6 +49,7 @@ const addReminder = () => {
     router.push(`/add_reminders`);
 }
 const modifyReminder = (item) => {
+  // 前端页面之间传递数据
   router.push({
     name: 'ModifyReminders',
     params: { id: item.tixing_id } // 假设 tixing_id 是你要传递的唯一标识符

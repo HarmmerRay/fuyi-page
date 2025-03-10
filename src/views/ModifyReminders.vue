@@ -178,6 +178,7 @@ export default {
     const tixing_id = ref('')
     const initData = () => {
       const route = useRoute()
+      // 前端页面之间传递数据
       tixing_id.value = route.params.id
       tixing_item_select_id(tixing_id.value).then((res) => {
         selectedHour.value = res.data.target_time.split(":")[0];
