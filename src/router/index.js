@@ -12,12 +12,10 @@ import AddReminders from "@/views/AddReminders.vue";
 import ModifyReminders from "@/views/ModifyReminders.vue";
 import ModifyProfile from "@/views/ModifyProfile.vue";
 import TopBarLayout from "@/layouts/TopBarLayout.vue";
-import * as path from "node:path";
 import MessageCenter from "@/views/MessageCenter.vue";
 import HelpCenter from "@/views/HelpCenter.vue";
 import TixingItems from "@/views/TixingItems.vue";
 import ContactUs from "@/views/ContactUs.vue";
-import Admin from "@/views/Admin.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -119,12 +117,6 @@ const routes = [
         }
       }
     ]
-  },
-  {
-    path: '/admin',
-    name: 'Admin',
-    component: Admin,
-
   }
 ]
 
