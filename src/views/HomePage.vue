@@ -4,7 +4,18 @@
       <img :src="avatar_url" alt="用户头像" class="avatar" />
       <div class="welcome-message">欢迎回来，{{ timeOfDay }}好{{ userName }}</div>
     </div>
-    <button class="voice-button" @click="audio_record(user_id,'1')">录入语音</button>
+    <button
+      class="voice-button"
+      @click="handleVoiceRecord"
+      :disabled="isLoading"
+    >
+      {{ isLoading ? '录音中...' : '录入语音' }}
+    </button>
+    <!-- 新增加载状态指示器 -->
+    <div v-if="isLoading" class="loading-indicator">
+      正在更新数据...
+    </div>
+
     <div class="reminders-title">提醒事项</div>
     <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id" @click="modifyReminder(item)">
       <div class="time-and-summary">
@@ -42,6 +53,28 @@ import { get_cookie} from "@/util/auth.js";
 import {audio_record} from "@/util/audio.js"
 import blueIcon from "@/assets/add_reminder_blue.png";
 import greyIcon from "@/assets/add_reminder_grey.png";
+import {showToast} from "vant";
+// 新增加载状态
+const isLoading = ref(false)
+const handleVoiceRecord = async () => {
+  try {
+    isLoading.value = true
+    // 执行录音并上传
+    await audio_record(user_id, '1')
+
+    // 成功后再请求最新数据
+    const res = await tixing_items_info(user_id)
+    console.log("成功后再请求最新数据",res)
+    visibleReminders = computed(() => res.data.slice(0, maxVisibleCount.value))
+    console.log('成功后再请求最新数据visibleReminders',visibleReminders)
+  } catch (error) {
+    console.error('语音录入失败:', error)
+    // 显示错误提示
+  } finally {
+    console.log("isLoading值变为false")
+    isLoading.value = false
+  }
+}
 
 const isActive = ref(false);
 const addReminder = () => {
@@ -185,7 +218,7 @@ function switch_state(tixing_id, state) {
   }
 }
 
-const visibleReminders = computed(() => reminders.value.slice(0, maxVisibleCount.value))
+let visibleReminders = computed(() => reminders.value.slice(0, maxVisibleCount.value))
 const timeOfDay = computed(() => {
   const hour = new Date().getHours()
   if (hour < 12) return '早上'
@@ -332,5 +365,22 @@ function loadMore() {
   width: 50px;  /* 根据实际图片尺寸调整 */
   height: 50px;
   transition: transform 0.2s;
+}
+
+.loading-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 15px 30px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  border-radius: 8px;
+  z-index: 999;
+}
+
+.voice-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>
