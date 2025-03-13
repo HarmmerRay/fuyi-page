@@ -79,14 +79,26 @@ export const delete_tixing_by_id = (tixing_id) =>{
     }
   })
 }
+// ---------------------- 资讯 ------------------------------
 // 雪球是：一个资讯一次请求，请求时带上当前是第几条，index
-export const nearby_news_info = (user_position,index) =>{
+export const nearby_news_info = (coordinate,index) =>{
   return http({   // 一次返回10条
     url: '/api/nearby_news_info',
     method: 'POST',
     data: {
-      user_position,
+      coordinate,
       index
+    }
+  })
+}
+
+export const get_location = (coordinate) =>{
+  // console.log('coordinate',coordinate)
+  return http({   // 一次返回10条
+    url: '/api/get_location',
+    method: 'POST',
+    data: {
+      coordinate
     }
   })
 }
