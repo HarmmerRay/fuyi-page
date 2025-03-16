@@ -18,14 +18,6 @@
     <div class="action-buttons">
       <van-button
         round
-        type="primary"
-        @click="handleMarkRead"
-        v-if="!detail.is_read"
-      >
-        标记已读
-      </van-button>
-      <van-button
-        round
         type="danger"
         @click="handleDelete"
       >

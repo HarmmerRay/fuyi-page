@@ -113,13 +113,12 @@ export const getMessages = (user_id) => {
   })
 }
 
-export const markAllRead = (user_id,msg_id) =>{
+export const markAllRead = (user_id) =>{
   return http({
     url: '/api/mark_all_read',
     method: 'POST',
     data:{
-      user_id,
-      msg_id
+      user_id
     }
   })
 }
