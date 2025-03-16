@@ -38,7 +38,7 @@
       <img
         class="add-reminder-icon"
         :src="isActive ? blueIcon : greyIcon"
-        alt="分享按钮"
+        alt="添加按钮"
         @click.stop="addReminder"
       />
     </div>

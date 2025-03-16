@@ -322,10 +322,10 @@ const fetchData = async function () {
     longitude: geoData.longitude,
     accuracy: geoData.accuracy
   }, index)
-  // console.log("fetchData", response.data);
-  if (response.data.status === '0') {
+  console.log("fetchData", response.data);
+  if (response.data.status === '1') {
     index++; // 分页索引递增
-    return response.data;
+    return response.data.data;
   }else {
     // 模拟从服务器获取数据
     return [

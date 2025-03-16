@@ -16,6 +16,7 @@ import MessageCenter from "@/views/MessageCenter.vue";
 import HelpCenter from "@/views/HelpCenter.vue";
 import TixingItems from "@/views/TixingItems.vue";
 import ContactUs from "@/views/ContactUs.vue";
+import MessageDetail from "@/views/MessageDetail.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -91,6 +92,15 @@ const routes = [
         meta: {
           title: '消息中心'
         }
+      },
+      {
+        path: 'message_detail/:id',
+        name: 'MessageDetail',
+        component: MessageDetail,
+        meta: {
+          title: '消息详细'
+        },
+        props: router => ({id: router.params.id})
       },
       {
         path: 'help_center',

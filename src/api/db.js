@@ -102,3 +102,64 @@ export const get_location = (coordinate) =>{
     }
   })
 }
+// ---------------------- 消息中心 ------------------------------
+export const getMessages = (user_id) => {
+  return http({
+    url: '/api/get_messages',
+    method: 'GET',
+    data:{
+      user_id
+    }
+  })
+}
+
+export const markAllRead = (user_id,msg_id) =>{
+  return http({
+    url: '/api/mark_all_read',
+    method: 'POST',
+    data:{
+      user_id,
+      msg_id
+    }
+  })
+}
+
+export const deleteAll = (user_id) =>{
+  return http({
+    url: '/api/delete_all',
+    method: 'POST',
+    data:{
+      user_id
+    }
+  })
+}
+// getMessageDetail, markRead, deleteMessage
+export const getMessageDetail = (msg_id) =>{
+  return http({
+    url: '/api/get_message',
+    method: 'GET',
+    params:{
+      msg_id
+    }
+  })
+}
+
+export const markRead = (msg_id) =>{
+  return http({
+    url: '/api/mark_read',
+    method: 'POST',
+    data:{
+      msg_id
+    }
+  })
+}
+
+export const deleteMessage = (msg_id) =>{
+  return http({
+    url: '/api/delete_message',
+    method: 'POST',
+    data:{
+      msg_id
+    }
+  })
+}
