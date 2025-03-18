@@ -17,6 +17,7 @@ import HelpCenter from "@/views/HelpCenter.vue";
 import TixingItems from "@/views/TixingItems.vue";
 import ContactUs from "@/views/ContactUs.vue";
 import MessageDetail from "@/views/MessageDetail.vue";
+import HelpDetail from "@/views/HelpDetail.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -109,6 +110,15 @@ const routes = [
         meta: {
           title: '帮助中心'
         }
+      },
+      {
+        path: 'help_detail/:id',
+        name: 'HelpDetail',
+        component: HelpDetail,
+        meta: {
+          title: '帮助详情'
+        },
+        props: router => ({id: router.params.id})
       },
       {
         path: 'tixing_items',
