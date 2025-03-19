@@ -42,11 +42,12 @@ export default defineConfig({
     include: ['js-md5'],
   },
   server: {
-    port: 3000,  // 与Flask同端口
+    port: 3000,
     strictPort: true,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:5000',
+        // target: 'http://backend:5000',  // docker-compose 网络之间的主机地址
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
