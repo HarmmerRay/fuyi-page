@@ -12,9 +12,9 @@
       {{ isLoading ? '录音中...' : '录入语音' }}
     </button>
     <!-- 新增加载状态指示器 -->
-    <div v-if="isLoading" class="loading-indicator">
-      正在更新数据...
-    </div>
+<!--    <div v-if="isLoading" class="loading-indicator">-->
+<!--      正在更新数据...-->
+<!--    </div>-->
 
     <div class="reminders-title">提醒事项</div>
     <div class="reminder-item" v-for="item in visibleReminders" :key="item.tixing_id" @click="modifyReminder(item)">
@@ -50,7 +50,7 @@ import { ref, computed } from 'vue'
 import router from '../router/index.js'
 import { tixing_items_info, update_tixing_state, user_info } from '@/api/db.js'
 import { get_cookie} from "@/util/auth.js";
-import {audio_record} from "@/util/audio.js"
+import {audio_record, audio_record2} from "@/util/audio.js"
 import blueIcon from "@/assets/add_reminder_blue.png";
 import greyIcon from "@/assets/add_reminder_grey.png";
 import {showToast} from "vant";
@@ -59,9 +59,13 @@ const isLoading = ref(false)
 const handleVoiceRecord = async () => {
   try {
     isLoading.value = true
-    // 执行录音并上传
-    await audio_record(user_id, '1')
-
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      showToast('当前浏览器不支持录音');
+      isLoading.value = false
+      return;
+    }
+    // 执行录音并上传  将帅宰辅之才
+    await audio_record2(user_id, '1')
     // 成功后再请求最新数据
     const res = await tixing_items_info(user_id)
     console.log("成功后再请求最新数据",res)

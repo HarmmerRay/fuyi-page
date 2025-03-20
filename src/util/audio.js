@@ -4,6 +4,82 @@ import router from "@/router/index.js";
 import WavEncoder from "wav-encoder";
 import {asr_tixing_create, upload_audio} from "@/api/aliyun.js";
 
+export const audio_record2 = async (id, type) => {
+  try {
+    // 1. 检查基础支持
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      showToast('当前浏览器不支持录音');
+      return;
+    }
+
+    // 2. 获取权限
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        sampleRate: 16000,
+        channelCount: 1,
+        echoCancellation: true
+      }
+    });
+
+    // 3. 初始化录音器
+    const recorder = new MediaRecorder(stream, {
+      audioBitsPerSecond: 64000,
+      mimeType: 'audio/webm;codecs=opus'
+    });
+
+    const audioChunks = [];
+    const convertWebmToWav = async (webmBlob) => {
+      const webmArrayBuffer = await webmBlob.arrayBuffer();
+      const wavBlob = new Blob([webmArrayBuffer], { type: 'audio/wav' });
+      return wavBlob;
+    };
+    // 4. 数据收集
+    recorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
+
+    // 5. 录音结束处理
+    return new Promise((resolve) => {
+      recorder.onstop = async () => {
+        const webmBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+        // 格式转换（如需）
+        const wavBlob = await convertWebmToWav(webmBlob);
+        const audioFile = new File([wavBlob], `recording_${Date.now()}.wav`, {
+          type: 'audio/wav'
+        });
+        // 上传逻辑
+        const formData = new FormData();
+        formData.append('audio', wavBlob, `recording_${Date.now()}.wav`);
+
+        // 执行上传...
+        console.log(audioFile);
+        // 8. 上传云存储+写入数据库
+        if (type === '1') {
+          showToast('ASR识别，事项创建中...');
+          await asr_tixing_create(id, audioFile);
+          showToast('事项创建成功');
+        }
+        if (type === '2') {
+          showToast('语音录入中...');
+          await upload_audio(id,audioFile);
+          showToast('语音录入成功');
+        }
+        resolve(true);
+      };
+
+      // 自动停止
+      setTimeout(() => recorder.stop(), 10000);
+      recorder.start();
+    });
+
+  } catch (error) {
+    handleRecordingError(error);
+    return false;
+  }
+};
+
+
 // 1、 user_id  2、tixing_id
 export const audio_record = async (id,type) => {
   return new Promise(async (resolve,reject) => {
