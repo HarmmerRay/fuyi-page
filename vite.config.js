@@ -7,30 +7,23 @@ import pxtovw from "postcss-px-to-viewport";
 import * as fs from "node:fs";
 // import vueDevTools from 'vite-plugin-vue-devtools'
 
-// https://vite.dev/config/
+// https://vite.dev/config/  原生 ES 模块的新一代前端构建工具
 
 const loder_pxtovw = pxtovw({
-  //这里是设计稿宽度 自己修改
+  //这里是设计稿宽度 自己修改  px vw 使用vw作为边距大小单位
   viewportWidth: 375,
   viewportUnit: "vw",
 });
 
 export default defineConfig({
   plugins: [
-    vue(),
-    vueJsx(),
+    vue(), // vue框架
+    vueJsx(), // js中添加html代码
     // vueDevTools(),
   ],
   css: {
     postcss: {
       plugins: [loder_pxtovw],
-      //  less: {
-      //   // 禁用Less的charset输出，通常推荐设置为false以避免编码问题
-      //   charset: false,
-      //   // 在此处引入全局样式文件，例如全局Less文件
-      //   additionalData: '@import "./src/assets/style/global.less";',
-      // }
-
     },
   },
   resolve: {
@@ -49,12 +42,11 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:5000',
         // target: 'http://backend:5000',  // docker-compose 网络之间的主机地址
-        changeOrigin: true,
+        changeOrigin: true,  // 防止跨域
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     },
     host: true, //开启局域网内访问
-    // https: true
     https: {
       // 使用自签名证书   Windows10上 安装OpenSSL生成私钥和证书
       // openssl genpkey -algorithm RSA -out key.pem -pkeyopt rsa_keygen_bits:2048

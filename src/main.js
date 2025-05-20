@@ -1,12 +1,12 @@
 import './assets/main.css'
 
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import Vant from 'vant'
+import { createPinia } from 'pinia' //一个状态管理库
+import Vant from 'vant' //轻量级且功能丰富的移动端 Vue 组件库
 import ElementPlus from 'element-plus'
 import App from './App.vue'
-import router from './router'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import router from './router' // 全局路由
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate' //页面刷新时能保留状态
 
 // 导入样式
 import 'vant/lib/index.css'
