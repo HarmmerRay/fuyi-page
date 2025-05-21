@@ -157,6 +157,7 @@ import {get_location, nearby_news_info} from "@/api/db.js";
 // -----------------------分享功能----------------------------
 import greyIcon from '@/assets/share_grey.png' // 确保路径正确
 import blueIcon from '@/assets/share_blue.png'
+import router from "@/router/index.js";
 
 const search_query = ref('')
 const active_tab = ref(true)
@@ -169,8 +170,10 @@ const trackShare = (type) => {
   // 埋点逻辑
   this.$ga.event('Share', type, currentShareItem.value.id)
 }
-const go_to_post = () => {
 
+// todo 发布资讯页面跳转
+const go_to_post = () => {
+    router.push("/community_publish")
 }
 // -----------------------获取定位---------------------------
 // 定位相关状态

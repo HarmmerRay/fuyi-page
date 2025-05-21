@@ -18,6 +18,8 @@ import TixingItems from "@/views/TixingItems.vue";
 import ContactUs from "@/views/ContactUs.vue";
 import MessageDetail from "@/views/MessageDetail.vue";
 import HelpDetail from "@/views/HelpDetail.vue";
+import CommunityPublish from "@/views/CommunityPublish.vue";
+import CommunityDetail from "@/views/CommunityDetail.vue";
 
 // 路由守卫 跳转页面鉴权
 const routes = [
@@ -134,6 +136,22 @@ const routes = [
         component: ContactUs,
         meta: {
           title: '联系我们'
+        }
+      },
+      {
+        path: 'community_publish',
+        name: 'CommunityPublish',
+        component: CommunityPublish,
+        meta: {
+          title: '资讯发布'
+        }
+      },
+      {
+        path: 'CommunityDetail',
+        name: 'CommunityDetail',
+        component: CommunityDetail,
+        meta: {
+          title: '资讯详情'
         }
       }
     ]
