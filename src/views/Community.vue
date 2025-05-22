@@ -368,7 +368,7 @@ const fetchData = async function () {
 const go_detail = function (item) {
   // item_id是备着从数据库查询数据  实际上只是通过浏览器的localStorage中
   localStorage.setItem("item_" + item.id, JSON.stringify(item));
-  this.$router.push(`/article_detail/${item.id}`);
+  router.push(`/article_detail/${item.id}`);
 }
 const on_load = () => {
   setTimeout(async () => {
