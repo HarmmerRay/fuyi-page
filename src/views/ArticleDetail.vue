@@ -1,11 +1,14 @@
 <script setup>
 import { ref } from 'vue'
+import {useRoute} from "vue-router";
 
 // 页面数据
 const articleContent = ref(`# 资讯标题\n\n![示例图片](https://picsum.photos/800/400)\n\n这是一篇示例资讯文章，支持以下格式：\n- 无序列表项\n- 支持代码：\n  \`\`\`javascript\n  console.log('Hello Vue 3!');\n  \`\`\`\n\n> 引用内容示例\n\n**加粗文本** 和 *斜体文本*`)
 const isLiked = ref(false)
 const commentText = ref('')
+const route = useRoute()
 
+console.log("传过来的news_id",route.params.news_id)
 // 操作方法
 const handleBack = () => {
   window.history.back()

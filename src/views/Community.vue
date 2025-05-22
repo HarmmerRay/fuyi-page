@@ -367,8 +367,12 @@ const fetchData = async function () {
 
 const go_detail = function (item) {
   // item_id是备着从数据库查询数据  实际上只是通过浏览器的localStorage中
-  localStorage.setItem("item_" + item.id, JSON.stringify(item));
-  router.push(`/article_detail/${item.id}`);
+  // console.log(item)
+  localStorage.setItem("item_" + item.news_id, JSON.stringify(item));
+  router.push({
+    name: 'ArticleDetail',
+    params: { news_id: item.news_id } // 假设 tixing_id 是你要传递的唯一标识符
+  });
 }
 const on_load = () => {
   setTimeout(async () => {

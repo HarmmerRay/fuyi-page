@@ -37,7 +37,12 @@ const routes = [
         path: 'article_detail',
         name: 'ArticleDetail',
         component: ArticleDetail,
-        props: router => ({id: router.item.id})
+        props: router => ({news_id: router.params.news_id})
+      },
+      {
+        path: 'community_publish',
+        name: 'CommunityPublish',
+        component: CommunityPublish,
       },
       {
         path: 'add_reminders',
@@ -137,14 +142,6 @@ const routes = [
         component: ContactUs,
         meta: {
           title: '联系我们'
-        }
-      },
-      {
-        path: 'community_publish',
-        name: 'CommunityPublish',
-        component: CommunityPublish,
-        meta: {
-          title: '资讯发布'
         }
       }
     ]
