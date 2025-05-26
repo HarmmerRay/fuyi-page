@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <div class="header">
       <img
-        src="@/assets/go_back_grey.png"
+        :src="backButtonSrc"
         alt="返回"
         class="back-icon"
         @click="goBack"
@@ -32,7 +32,7 @@
     <div class="image-toolbar">
       <button class="image-btn" @click="insertImage">
         <img
-          src="@/assets/check_grey.png"
+          src="@/assets/gallery_grey.png"
           alt="插入图片"
           class="image-icon"
         />
@@ -42,11 +42,19 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
+import goBackGrey from '@/assets/go_back_grey.png'
+import goBackBlue from '@/assets/go_back_blue.png'
 
 // 响应式数据
 const articleContent = ref('')
 const editorRef = ref(null)
+const isBackActivate = ref(false)
+const backButtonSrc = computed(() => {
+  return isBackActivate.value
+      ? goBackBlue
+      : goBackGrey
+})
 
 // 返回按钮功能
 function goBack() {
