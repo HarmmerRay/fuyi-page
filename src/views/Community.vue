@@ -1,24 +1,19 @@
 <template>
   <div class="community">
     <div class="search-and-post">
-      <van-search v-model="search_query" placeholder="搜索资讯"/>
-      <img src="@/assets/publish.png" alt="发布" @click="go_to_post" class="publish-icon"/>
+      <van-search v-model="search_query" placeholder="搜索资讯" />
+      <img src="@/assets/publish.png" alt="发布" @click="go_to_post" class="publish-icon" />
     </div>
     <div class="location-bar" @click="handleLocationClick">
-  <span v-if="locationLoading" class="location-text">
-    <van-loading type="spinner" size="16px"/> 获取中...
-  </span>
+      <span v-if="locationLoading" class="location-text">
+        <van-loading type="spinner" size="16px" /> 获取中...
+      </span>
       <span v-else-if="currentLocation" class="location-text">
-    📍 定位：{{ currentLocation.addressComponent.township }}
-  </span>
+        📍 定位：{{ currentLocation.addressComponent.township }}
+      </span>
       <span v-else class="location-text">📍 获取不到位置信息</span>
     </div>
-    <van-popup
-      v-model:show="showLocationDetail"
-      position="bottom"
-      round
-      :style="{ height: '40%' }"
-    >
+    <van-popup v-model:show="showLocationDetail" position="bottom" round :style="{ height: '40%' }">
       <div class="location-detail">
         <h3>当前位置详情</h3>
         <template v-if="currentLocation">
@@ -32,7 +27,7 @@
           </div>
         </template>
         <div v-else class="empty-tip">
-          <van-icon name="warning" color="#ff976a"/>
+          <van-icon name="warning" color="#ff976a" />
           <p>尚未获取到有效位置信息</p>
         </div>
       </div>
@@ -42,16 +37,9 @@
     </van-tabs>
     <div class="news-list">
       <van-list v-model="loading" :finished="finished" finished-text="没有更多了" @load="on_load">
-
         <template v-if="loading && !items.length">
           <div class="loading-wrapper">
-            <van-loading
-              size="24px"
-              vertical
-              color="#1989fa"
-            >
-              拼命加载中...
-            </van-loading>
+            <van-loading size="24px" vertical color="#1989fa"> 拼命加载中... </van-loading>
           </div>
         </template>
 
@@ -60,12 +48,7 @@
             <!-- 头像、用户名、发布日期 -->
             <van-row type="flex" align="center">
               <van-col span="2">
-                <van-image
-                  round
-                  width="23px"
-                  height="23px"
-                  :src="item.avatar_url"
-                />
+                <van-image round width="23px" height="23px" :src="item.avatar_url" />
               </van-col>
               <van-col span="16">
                 <p class="username">{{ item.user_name }}</p>
@@ -79,8 +62,12 @@
 
             <!-- 图片 -->
             <van-row gutter="10" v-if="item.images.length > 0" class="image-row">
-              <van-col v-for="(image, imgIndex) in item.images.slice(0, 3)" :key="imgIndex" class="image-col"
-                       :style="getImageContainerStyle(image)">
+              <van-col
+                v-for="(image, imgIndex) in item.images.slice(0, 3)"
+                :key="imgIndex"
+                class="image-col"
+                :style="getImageContainerStyle(image)"
+              >
                 <van-image
                   fit="cover"
                   width="100%"
@@ -93,7 +80,7 @@
 
             <!-- 分享按钮、评论数、点赞数、浏览数 -->
             <van-row type="flex">
-              <van-col span="6" style="text-align: left;font-size: 14px;color: #999">
+              <van-col span="6" style="text-align: left; font-size: 14px; color: #999">
                 <p>发布于: {{ item.position }}</p>
               </van-col>
               <van-col span="5">
@@ -107,7 +94,11 @@
               </van-col>
               <van-col>
                 <div class="overlay" v-if="isOverlayVisible" @click="handleOverlayClick"></div>
-                <div class="share-container" :class="{ 'active': isActive }" @click.stop="handleShareClick">
+                <div
+                  class="share-container"
+                  :class="{ active: isActive }"
+                  @click.stop="handleShareClick"
+                >
                   <!-- 使用 img 标签实现图标切换 -->
                   <img
                     class="share-icon"
@@ -119,11 +110,11 @@
                   <!-- 分享菜单 -->
                   <div v-if="showShareMenu" class="share-menu">
                     <div class="menu-item" @click.stop="shareToWechat(item)">
-                      <img src="@/assets/wechat-icon.png" alt="微信好友">
+                      <img src="@/assets/wechat-icon.png" alt="微信好友" />
                       <span>微信好友</span>
                     </div>
                     <div class="menu-item" @click.stop="shareToMoment(item)">
-                      <img src="@/assets/moment-icon.png" alt="朋友圈">
+                      <img src="@/assets/moment-icon.png" alt="朋友圈" />
                       <span>朋友圈</span>
                     </div>
                   </div>
@@ -135,36 +126,28 @@
         <!-- 底部加载提示 -->
         <template #loading>
           <div class="bottom-loading">
-            <van-loading
-              size="18px"
-              vertical
-              color="#969799"
-            >
-              正在加载更多...
-            </van-loading>
+            <van-loading size="18px" vertical color="#969799"> 正在加载更多... </van-loading>
           </div>
         </template>
       </van-list>
-
     </div>
   </div>
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
-import {showToast} from 'vant';
-import {get_location, nearby_news_info} from "@/api/db.js";
+import { onMounted, ref } from 'vue'
+import { showToast } from 'vant'
+import { get_location, nearby_news_info } from '@/api/db.js'
 // -----------------------分享功能----------------------------
 import greyIcon from '@/assets/share_grey.png' // 确保路径正确
 import blueIcon from '@/assets/share_blue.png'
-import router from "@/router/index.js";
+import router from '@/router/index.js'
 
 const search_query = ref('')
 const active_tab = ref(true)
-const loading = ref(true);
-const finished = ref(false);
-const items = ref([]);
-
+const loading = ref(true)
+const finished = ref(false)
+const items = ref([])
 
 const trackShare = (type) => {
   // 埋点逻辑
@@ -173,60 +156,64 @@ const trackShare = (type) => {
 
 // todo 发布资讯页面跳转
 const go_to_post = () => {
-    router.push("/community_publish")
+  router.push('/community_publish')
 }
 // -----------------------获取定位---------------------------
 // 定位相关状态
-const currentLocation = ref(null);
-const locationLoading = ref(false);
-const showLocationDetail = ref(false);
+const currentLocation = ref(null)
+const locationLoading = ref(false)
+const showLocationDetail = ref(false)
 
 // 获取详细位置信息
 async function getDetailLocation(position) {
   try {
     // console.log('position',position);
     let data = ''
-    const res = await get_location(position);
-    data = res.data;
+    const res = await get_location(position)
+    data = res.data
     if (data.status === '1' && data.regeocode) {
       // console.log("return data",data.regeocode)
-      return data.regeocode;
+      return data.regeocode
     }
   } catch (error) {
-    console.error('获取详细位置失败:', error);
-    return null;
+    console.error('获取详细位置失败:', error)
+    return null
   }
 }
 
 // 获取定位经纬度数据
 const getCoordinate = async () => {
-  if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      // 成功回调
-      const latitude = position.coords.latitude;  // 纬度
-      const longitude = position.coords.longitude; // 经度
-      const accuracy = position.coords.accuracy;   // 精度（米）
-      console.log("定位成功：", {latitude, longitude, accuracy});
-    }, (error) => {
-      // 失败回调
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          console.error("用户拒绝授权");
-          break;
-        case error.POSITION_UNAVAILABLE:
-          console.error("无法获取位置");
-          break;
-        case error.TIMEOUT:
-          console.error("请求超时");
-          break;
-      }
-    }, {
-      enableHighAccuracy: true,  // 是否高精度模式（GPS）
-      timeout: 10000,            // 超时时间（毫秒）
-      maximumAge: 30000          // 允许使用缓存位置的最大时间
-    });
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // 成功回调
+        const latitude = position.coords.latitude // 纬度
+        const longitude = position.coords.longitude // 经度
+        const accuracy = position.coords.accuracy // 精度（米）
+        console.log('定位成功：', { latitude, longitude, accuracy })
+      },
+      (error) => {
+        // 失败回调
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            console.error('用户拒绝授权')
+            break
+          case error.POSITION_UNAVAILABLE:
+            console.error('无法获取位置')
+            break
+          case error.TIMEOUT:
+            console.error('请求超时')
+            break
+        }
+      },
+      {
+        enableHighAccuracy: true, // 是否高精度模式（GPS）
+        timeout: 10000, // 超时时间（毫秒）
+        maximumAge: 30000, // 允许使用缓存位置的最大时间
+      },
+    )
   } else {
-    console.error("浏览器不支持定位功能");
+    console.error('浏览器不支持定位功能')
   }
 }
 
@@ -236,81 +223,80 @@ async function getLocation() {
   return new Promise((resolve, reject) => {
     // 检查浏览器是否支持地理定位
     if (!navigator.geolocation) {
-      reject('浏览器不支持定位');
+      reject('浏览器不支持定位')
     }
 
     // 使用getCurrentPosition方法尝试获取当前位置
     navigator.geolocation.getCurrentPosition(
       // 成功回调：当获取位置成功时触发
-      position => resolve({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-        timestamp: Date.now()
-      }),
+      (position) =>
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: Date.now(),
+        }),
       // 错误回调：当获取位置失败时触发
-      error => reject(error),
+      (error) => reject(error),
       // 可选配置项，如高精度、超时等
-      {enableHighAccuracy: true, timeout: 10000}
-    );
-  });
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  })
 }
-
 
 // 处理定位点击
 const handleLocationClick = async () => {
   if (currentLocation.value) {
-    showLocationDetail.value = true;
-    return;
+    showLocationDetail.value = true
+    return
   }
 
-  if (locationLoading.value) return;
+  if (locationLoading.value) return
 
-  locationLoading.value = true;
-  showToast({message: '正在获取位置...', duration: 1500});
+  locationLoading.value = true
+  showToast({ message: '正在获取位置...', duration: 1500 })
 
   try {
     init_location()
   } catch (error) {
-    console.error('定位失败:', error);
+    console.error('定位失败:', error)
     showToast({
       message: error.PERMISSION_DENIED ? '请授权位置权限' : '获取位置失败',
-      position: 'bottom'
-    });
+      position: 'bottom',
+    })
   } finally {
-    locationLoading.value = false;
+    locationLoading.value = false
   }
-};
+}
 
 const init_location = async function () {
-  let storedGeo = localStorage.getItem('geoData');
+  let storedGeo = localStorage.getItem('geoData')
   if (storedGeo) {
     currentLocation.value = await getDetailLocation(storedGeo)
-    currentLocation.value.accuracy = JSON.parse(storedGeo)['accuracy'];
+    currentLocation.value.accuracy = JSON.parse(storedGeo)['accuracy']
     // console.log("currentLocation.value", currentLocation.value);
   } else {
-    storedGeo = await getLocation();
-    localStorage.setItem('geoData', JSON.stringify(storedGeo));
-    currentLocation.value = await getDetailLocation(storedGeo);
+    storedGeo = await getLocation()
+    localStorage.setItem('geoData', JSON.stringify(storedGeo))
+    currentLocation.value = await getDetailLocation(storedGeo)
   }
-  return !!(currentLocation.value && storedGeo);
+  return !!(currentLocation.value && storedGeo)
 }
 // -----------------------加载数据---------------------------
-
 
 let index = 0
 const fetchData = async function () {
   // 从本地存储获取地理信息
-  const storedGeo = localStorage.getItem('geoData');
+  const storedGeo = localStorage.getItem('geoData')
 
   if (!storedGeo) {
-    console.error("未找到地理位置信息");
+    console.error('未找到地理位置信息')
     // 可以在这里触发重新获取定位
     await init_location()
     return fetchData()
   }
 
-  const geoData = JSON.parse(storedGeo);
+  const geoData = JSON.parse(storedGeo)
   // 添加有效性检查（示例：60分钟内的定位）
   // const THIRTY_MINUTES = 60 * 60 * 1000;
   // if (new Date().getTime() - geoData.timestamp > THIRTY_MINUTES) {
@@ -320,24 +306,29 @@ const fetchData = async function () {
   // }
 
   // 使用存储的地理信息请求数据
-  const response = await nearby_news_info({
-    latitude: geoData.latitude,
-    longitude: geoData.longitude,
-    accuracy: geoData.accuracy
-  }, index)
-  console.log("fetchData", response.data);
+  const response = await nearby_news_info(
+    {
+      latitude: geoData.latitude,
+      longitude: geoData.longitude,
+      accuracy: geoData.accuracy,
+    },
+    index,
+  )
+  console.log('fetchData', response.data)
   if (response.data.status === '1') {
-    index++; // 分页索引递增
-    return response.data.data;
-  }else {
+    index++ // 分页索引递增
+    return response.data.data
+  } else {
     // 模拟从服务器获取数据
     return [
       {
         id: 1,
-        avatar_url: 'https://fuyi-pingtai.oss-cn-beijing.aliyuncs.com/avatar/17af5fe80fb1844b3fd48941.png',
+        avatar_url:
+          'https://fuyi-pingtai.oss-cn-beijing.aliyuncs.com/avatar/17af5fe80fb1844b3fd48941.png',
         user_name: '蓝球',
         publish_date: '2023-04-02',
-        content: '看了下直播回放，雷军这人，在营销上真的没有对手。[哭泣][哭泣]\n' +
+        content:
+          '看了下直播回放，雷军这人，在营销上真的没有对手。[哭泣][哭泣]\n' +
           '别人家开发布会，都是请明星撑场子，讲参数、介绍特色，雷总营销讲情怀：从湖北状元到卡里就剩下40亿的凡尔赛人生。\n' +
           '别人被调侃都是采取法律手段，雷总反手买下“ARE YOU OK”版权自黑，直播间和网友玩梗玩到起飞。\n' +
           '其他车企直播全靠老板尬聊，何小鹏吐槽：雷军营销比我强，但我技术要赢！\n' +
@@ -353,47 +344,47 @@ const fetchData = async function () {
           '来源：雪球\n' +
           '著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。\n' +
           '风险提示：本文所提到的观点仅代表个人的意见，所涉及标的不作推荐，据此买卖，风险自负。',
-        images: ['https://fuyi-pingtai.oss-cn-beijing.aliyuncs.com/pictures/1954d3b73a14331d3fef6623.jpg%21800.jpg'],
+        images: [
+          'https://fuyi-pingtai.oss-cn-beijing.aliyuncs.com/pictures/1954d3b73a14331d3fef6623.jpg%21800.jpg',
+        ],
         position: '北京',
-        comment_count: 3,  //666 1k+  1w+
-        like_count: 15,  //666 1k+  1w+
-        view_count: 75  //666 1k+  1w+  10w+
-      }
-    ];
+        comment_count: 3, //666 1k+  1w+
+        like_count: 15, //666 1k+  1w+
+        view_count: 75, //666 1k+  1w+  10w+
+      },
+    ]
   }
-
-
-};
+}
 
 const go_detail = function (item) {
   // item_id是备着从数据库查询数据  实际上只是通过浏览器的localStorage中
   // console.log(item)
-  localStorage.setItem("item_" + item.news_id, JSON.stringify(item));
+  localStorage.setItem('item_' + item.news_id, JSON.stringify(item))
   router.push({
     name: 'ArticleDetail',
-    params: { news_id: item.news_id } // 假设 tixing_id 是你要传递的唯一标识符
-  });
+    params: { news_id: item.news_id }, // 假设 tixing_id 是你要传递的唯一标识符
+  })
 }
 const on_load = () => {
   setTimeout(async () => {
     // 模拟异步加载
-    const newData = await fetchData();
-    console.log('newData', newData);
+    const newData = await fetchData()
+    console.log('newData', newData)
     if (newData.length === 0) {
-      finished.value = true;
+      finished.value = true
     } else {
-      items.value = items.value.concat(newData);
-      index = index + items.value.length;
+      items.value = items.value.concat(newData)
+      index = index + items.value.length
     }
-    loading.value = false;
-  }, 1000);
+    loading.value = false
+  }, 1000)
 }
 
 const getImageContainerStyle = (image) => {
   const ratio = image.height / image.width
   return {
     // 基础宽度（根据列布局自动计算）
-    paddingBottom: `${ratio * 100}%`
+    paddingBottom: `${ratio * 100}%`,
   }
 }
 
@@ -411,24 +402,22 @@ const handleImageLoad = (e, image) => {
 
 onMounted(() => {
   // 初始化定位
-  if (init_location()){
+  if (init_location()) {
     // 初始化数据
     fetchData()
   }
+})
 
-});
-
-
-const showShareMenu = ref(false);
-const isActive = ref(false);
-const isOverlayVisible = ref(false);
-const currentShareItem = ref(null);
+const showShareMenu = ref(false)
+const isActive = ref(false)
+const isOverlayVisible = ref(false)
+const currentShareItem = ref(null)
 
 const handleShareClick = (item) => {
   currentShareItem.value = item
-  isActive.value = !(isActive.value);
-  showShareMenu.value = !(showShareMenu.value)
-  isOverlayVisible.value = !(isOverlayVisible.value)
+  isActive.value = !isActive.value
+  showShareMenu.value = !showShareMenu.value
+  isOverlayVisible.value = !isOverlayVisible.value
   // 初始化微信分享（需要提前注入配置）
   initWechatShare(item)
 }
@@ -443,7 +432,7 @@ const handleOverlayClick = () => {
 async function initWechatShare(item) {
   try {
     // 获取微信签名配置
-    const {appId, timestamp, nonceStr, signature} = await getWechatConfig()
+    const { appId, timestamp, nonceStr, signature } = await getWechatConfig()
 
     wx.config({
       debug: false, // 生产环境关闭
@@ -451,10 +440,7 @@ async function initWechatShare(item) {
       timestamp,
       nonceStr,
       signature,
-      jsApiList: [
-        'updateAppMessageShareData',
-        'updateTimelineShareData'
-      ]
+      jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData'],
     })
 
     wx.ready(() => {
@@ -466,7 +452,7 @@ async function initWechatShare(item) {
         imgUrl: item.images[0] || defaultShareImage,
         success: () => {
           this.trackShare('wechat')
-        }
+        },
       })
 
       // 自定义"分享到朋友圈"内容
@@ -476,7 +462,7 @@ async function initWechatShare(item) {
         imgUrl: item.images[0] || defaultShareImage,
         success: () => {
           this.trackShare('moment')
-        }
+        },
       })
     })
   } catch (error) {
@@ -491,7 +477,7 @@ const shareToWechat = (item) => {
     success: () => {
       this.$toast.success('分享成功')
       this.trackAnalytics('share', 'wechat', item.id)
-    }
+    },
   })
 }
 
@@ -501,10 +487,9 @@ const shareToMoment = (item) => {
     success: () => {
       this.$toast.success('分享到朋友圈成功')
       this.trackAnalytics('share', 'moment', item.id)
-    }
+    },
   })
 }
-
 </script>
 
 <style scoped>
@@ -553,7 +538,7 @@ const shareToMoment = (item) => {
 }
 
 .item:hover {
-  background-color: #DCDCDC;
+  background-color: #dcdcdc;
 }
 
 .username {
@@ -601,7 +586,7 @@ const shareToMoment = (item) => {
 
   /* 根据实际比例覆盖 */
 
-  &[style*="padding-bottom"]::before {
+  &[style*='padding-bottom']::before {
     content: none;
   }
 
@@ -666,7 +651,8 @@ const shareToMoment = (item) => {
   color: #333;
 }
 
-.overlay { /* 整个页面覆盖层（变暗）只显示菜单 */
+.overlay {
+  /* 整个页面覆盖层（变暗）只显示菜单 */
   position: fixed; /* 确保覆盖层固定在视口中 */
   top: 0;
   left: 0;
@@ -675,6 +661,4 @@ const shareToMoment = (item) => {
   background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
   z-index: 999; /* 确保覆盖层位于其他内容之上 */
 }
-
-
 </style>

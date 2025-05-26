@@ -6,7 +6,7 @@ export const user_info = (user_id) => {
     url: '/api/user_info',
     method: 'GET',
     params: {
-      user_id
+      user_id,
     },
   })
 }
@@ -15,7 +15,7 @@ export const update_user_info = (form_data) => {
   return http({
     url: '/api/update_user_info',
     method: 'POST',
-    data: form_data // 直接传送过去json格式的表单数据
+    data: form_data, // 直接传送过去json格式的表单数据
   })
 }
 
@@ -24,8 +24,8 @@ export const delete_user_info = (user_id) => {
     url: '/api/delete_user_info',
     method: 'POST',
     data: {
-      user_id
-    }
+      user_id,
+    },
   })
 }
 // ---------------------- 提醒事项 ------------------------------
@@ -34,19 +34,19 @@ export const tixing_items_info = (user_id) => {
     url: '/api/tixing_items_info',
     method: 'GET',
     params: {
-      user_id
+      user_id,
     },
   })
 }
 
-export const tixing_item_add = (user_id,tixing_item) => {
+export const tixing_item_add = (user_id, tixing_item) => {
   return http({
     url: '/api/tixing_item_add',
     method: 'POST',
     data: {
       user_id,
-      tixing_item
-    }
+      tixing_item,
+    },
   })
 }
 
@@ -55,51 +55,65 @@ export const tixing_item_select_id = (tixing_item_id) => {
     url: '/api/tixing_item_select_id',
     method: 'GET',
     params: {
-      tixing_item_id
-    }
+      tixing_item_id,
+    },
   })
 }
-export const update_tixing_state = (tixing_id,state) =>{
+export const update_tixing_state = (tixing_id, state) => {
   return http({
     url: '/api/update_tixing_state',
     method: 'POST',
     data: {
       tixing_id,
-      state
-    }
+      state,
+    },
   })
 }
 
-export const delete_tixing_by_id = (tixing_id) =>{
+export const delete_tixing_by_id = (tixing_id) => {
   return http({
     url: '/api/delete_tixing_by_id',
     method: 'POST',
     data: {
       tixing_id,
-    }
+    },
   })
 }
 // ---------------------- 资讯 ------------------------------
 // 雪球是：一个资讯一次请求，请求时带上当前是第几条，index
-export const nearby_news_info = (coordinate,index) =>{
-  return http({   // 一次返回10条
+export const nearby_news_info = (coordinate, index) => {
+  return http({
+    // 一次返回10条
     url: '/api/nearby_news_info',
     method: 'POST',
     data: {
       coordinate,
-      index
-    }
+      index,
+    },
   })
 }
 
-export const get_location = (coordinate) =>{
+export const get_location = (coordinate) => {
   // console.log('coordinate',coordinate)
-  return http({   // 一次返回10条
+  return http({
+    // 一次返回10条
     url: '/api/get_location',
     method: 'POST',
     data: {
-      coordinate
-    }
+      coordinate,
+    },
+  })
+}
+
+export const publish_news = (news) => {
+  console.log('news', news)
+  return http({
+    url: '/api/publish_news',
+    method: 'POST',
+    data: {
+      // content  images  position
+      news,
+    },
   })
 }
 // ---------------------- 消息中心 ------------------------------
@@ -107,58 +121,58 @@ export const getMessages = (user_id) => {
   return http({
     url: '/api/get_messages',
     method: 'GET',
-    data:{
-      user_id
-    }
+    data: {
+      user_id,
+    },
   })
 }
 
-export const markAllRead = (user_id) =>{
+export const markAllRead = (user_id) => {
   return http({
     url: '/api/mark_all_read',
     method: 'POST',
-    data:{
-      user_id
-    }
+    data: {
+      user_id,
+    },
   })
 }
 
-export const deleteAll = (user_id) =>{
+export const deleteAll = (user_id) => {
   return http({
     url: '/api/delete_all',
     method: 'POST',
-    data:{
-      user_id
-    }
+    data: {
+      user_id,
+    },
   })
 }
 // getMessageDetail, markRead, deleteMessage
-export const getMessageDetail = (msg_id) =>{
+export const getMessageDetail = (msg_id) => {
   return http({
     url: '/api/get_message',
     method: 'GET',
-    params:{
-      msg_id
-    }
+    params: {
+      msg_id,
+    },
   })
 }
 
-export const markRead = (msg_id) =>{
+export const markRead = (msg_id) => {
   return http({
     url: '/api/mark_read',
     method: 'POST',
-    data:{
-      msg_id
-    }
+    data: {
+      msg_id,
+    },
   })
 }
 
-export const deleteMessage = (msg_id) =>{
+export const deleteMessage = (msg_id) => {
   return http({
     url: '/api/delete_message',
     method: 'POST',
-    data:{
-      msg_id
-    }
+    data: {
+      msg_id,
+    },
   })
 }
