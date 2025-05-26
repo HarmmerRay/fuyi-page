@@ -32,7 +32,7 @@
     <div class="image-toolbar">
       <button class="image-btn" @click="insertImage">
         <img
-          src="@/assets/gallery_grey.png"
+          :src="insertImageButtonSrc"
           alt="插入图片"
           class="image-icon"
         />
@@ -58,6 +58,7 @@ const backButtonSrc = computed(() => {
 
 // 返回按钮功能
 function goBack() {
+  isBackActivate.value = !isBackActivate.value
   window.history.back()
 }
 
@@ -70,8 +71,17 @@ function publish() {
   }
 }
 
+import galleryBlue from "@/assets/gallery_blue.png"
+import galleryGrey from "@/assets/gallery_grey.png"
+const isGalleryActivate = ref(false)
+const insertImageButtonSrc = computed(() => {
+  return isGalleryActivate.value
+      ? galleryBlue
+      : galleryGrey
+})
 // 插入图片功能
 function insertImage() {
+  isGalleryActivate.value = !isGalleryActivate.value
   const textarea = editorRef.value
   if (!textarea) return
 
@@ -123,7 +133,7 @@ function insertImage() {
   text-align: center;
   margin: 0 20px;
   font-size: 1.5em;
-  color: #1a73e8;
+  color: #4d98f8;
 }
 
 /* 返回图标样式 */
@@ -207,13 +217,13 @@ function insertImage() {
 }
 
 .image-icon {
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
   filter: invert(40%);
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease;
 }
 
 .image-icon:hover {
-  transform: scale(1.1);
+  transform: scale(1.3);
 }
 </style>
