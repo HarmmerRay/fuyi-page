@@ -1,14 +1,34 @@
 <script setup>
-import { ref } from 'vue'
-import {useRoute} from "vue-router";
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import MarkdownIt from 'markdown-it'
+import highlightjs from 'markdown-it-highlightjs'
+
+// 初始化markdown-it解析器
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true,
+  breaks: true,
+})
+
+// 使用highlightjs插件
+md.use(highlightjs)
 
 // 页面数据
-const articleContent = ref(`# 资讯标题\n\n![示例图片](https://picsum.photos/800/400)\n\n这是一篇示例资讯文章，支持以下格式：\n- 无序列表项\n- 支持代码：\n  \`\`\`javascript\n  console.log('Hello Vue 3!');\n  \`\`\`\n\n> 引用内容示例\n\n**加粗文本** 和 *斜体文本*`)
+const articleContent = ref(
+  `# 资讯标题\n\n![示例图片](https://picsum.photos/800/400)\n\n这是一篇示例资讯文章，支持以下格式：\n- 无序列表项\n- 支持代码：\n  \`\`\`javascript\n  console.log('Hello Vue 3!');\n  \`\`\`\n\n> 引用内容示例\n\n**加粗文本** 和 *斜体文本*`,
+)
 const isLiked = ref(false)
 const commentText = ref('')
 const route = useRoute()
 
-console.log("传过来的news_id",route.params.news_id)
+// 计算属性：渲染后的Markdown内容
+const renderedContent = computed(() => {
+  return md.render(articleContent.value || '')
+})
+
+console.log('传过来的news_id', route.params.news_id)
 // 操作方法
 const handleBack = () => {
   window.history.back()
@@ -45,11 +65,7 @@ const handleComment = () => {
 
     <!-- 用户信息 -->
     <section class="user-info">
-      <img
-        src="https://picsum.photos/50/50"
-        alt="用户头像"
-        class="avatar"
-      />
+      <img src="https://picsum.photos/50/50" alt="用户头像" class="avatar" />
       <div class="user-meta">
         <span class="username">用户名</span>
         <div class="time-location">
@@ -60,7 +76,7 @@ const handleComment = () => {
     </section>
 
     <!-- Markdown 内容 -->
-    <article class="article-content" v-html="articleContent"></article>
+    <article class="article-content markdown-preview" v-html="renderedContent"></article>
 
     <!-- 底部栏 -->
     <footer class="article-footer">
@@ -71,11 +87,7 @@ const handleComment = () => {
         @keyup.enter="handleComment"
         class="comment-input"
       />
-      <button
-        class="like-btn"
-        :class="{ 'liked': isLiked }"
-        @click="handleLike"
-      >
+      <button class="like-btn" :class="{ liked: isLiked }" @click="handleLike">
         {{ isLiked ? '❤️' : '🤍' }}
       </button>
     </footer>
@@ -99,7 +111,7 @@ const handleComment = () => {
   padding: 1rem 1.5rem;
   background-color: #ffffff;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .left-group {
@@ -175,43 +187,77 @@ const handleComment = () => {
   background-color: #fff;
 }
 
-/* Markdown 样式 */
-.article-content h1, .article-content h2, .article-content h3 {
+/* Markdown 预览样式 */
+.markdown-preview :deep(h1),
+.markdown-preview :deep(h2),
+.markdown-preview :deep(h3) {
   margin-top: 1.5rem;
   margin-bottom: 1rem;
   line-height: 1.3;
 }
 
-.article-content p {
+.markdown-preview :deep(h1) {
+  font-size: 2em;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 0.3em;
+  color: #1a73e8;
+}
+
+.markdown-preview :deep(h2) {
+  font-size: 1.5em;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 0.3em;
+  color: #2c3e50;
+}
+
+.markdown-preview :deep(p) {
   margin: 1rem 0;
   line-height: 1.6;
 }
 
-.article-content img {
+.markdown-preview :deep(img) {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
   margin: 1.5rem 0;
+  display: block;
 }
 
-.article-content pre {
+.markdown-preview :deep(pre) {
   background: #f0f0f0;
   padding: 1rem;
   border-radius: 8px;
   overflow-x: auto;
 }
 
-.article-content code {
+.markdown-preview :deep(code) {
   background: #f0f0f0;
   padding: 2px 4px;
   border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 85%;
 }
 
-.article-content blockquote {
+.markdown-preview :deep(blockquote) {
   border-left: 3px solid #e6e6e6;
   margin: 1.5rem 0;
   padding-left: 1rem;
   color: #666;
+}
+
+.markdown-preview :deep(ul),
+.markdown-preview :deep(ol) {
+  padding-left: 2rem;
+  margin: 1rem 0;
+}
+
+.markdown-preview :deep(li) {
+  margin: 0.5rem 0;
+}
+
+.markdown-preview :deep(a) {
+  color: #0366d6;
+  text-decoration: none;
 }
 
 /* 底部栏 */
@@ -223,7 +269,7 @@ const handleComment = () => {
   border-top: 1px solid #e9e9e9;
   position: sticky;
   bottom: 0;
-  box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .comment-input {
