@@ -147,6 +147,15 @@ export const unlike_news = (like_id) => {
   })
 }
 
+// 检查用户是否已点赞某资讯
+export const check_like_status = (news_id) => {
+  return http({
+    url: '/api/check_like_status',
+    method: 'POST',
+    data: { news_id },
+  })
+}
+
 export const add_comment = (news_id, content) => {
   return http({
     url: '/api/add_comment',

@@ -4,7 +4,14 @@ import { useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 
 import highlightjs from 'markdown-it-highlightjs'
-import { select_news_by_id, like_news, unlike_news, add_comment, get_comments } from '@/api/db.js'
+import {
+  select_news_by_id,
+  like_news,
+  unlike_news,
+  add_comment,
+  get_comments,
+  check_like_status,
+} from '@/api/db.js'
 
 // 初始化markdown-it解析器
 const md = new MarkdownIt({
@@ -37,11 +44,11 @@ const fetchNewsDetail = async () => {
   try {
     loading.value = true
     const news_id = route.params.news_id
-    console.log('获取资讯详情，news_id:', news_id)
+    // console.log('获取资讯详情，news_id:', news_id)
 
     // 调用API获取资讯详情
     const response = await select_news_by_id(news_id)
-    console.log('获取资讯详情成功:', response.data)
+    // console.log('获取资讯详情成功:', response.data)
     if (response.data.status === '1' && response.data.data) {
       newsData.value = response.data.data
       // 确保publish_time和location有默认值
@@ -50,6 +57,15 @@ const fetchNewsDetail = async () => {
 
       // 设置文章内容
       articleContent.value = `# ${newsData.value.title || '资讯详情'}\n\n${newsData.value.content || ''}`
+
+      // 检查是否已点赞
+      if (newsData.value.is_liked) {
+        isLiked.value = true
+        likeId.value = newsData.value.like_id || null
+      } else {
+        isLiked.value = false
+        likeId.value = null
+      }
     } else {
       console.error('获取资讯详情失败:', response.data.msg)
       // 使用localStorage中的数据作为备选
@@ -60,6 +76,14 @@ const fetchNewsDetail = async () => {
         newsData.value.publish_time = newsData.value.publish_time || '未知时间'
         newsData.value.location = newsData.value.location || '未知地点'
         articleContent.value = `# ${cachedItem.title || '资讯详情'}\n\n${cachedItem.content || ''}`
+        // 检查是否已点赞
+        if (cachedItem.is_liked) {
+          isLiked.value = true
+          likeId.value = cachedItem.like_id || null
+        } else {
+          isLiked.value = false
+          likeId.value = null
+        }
       }
     }
   } catch (error) {
@@ -72,7 +96,8 @@ const fetchNewsDetail = async () => {
 // 获取评论列表
 const fetchComments = async (news_id) => {
   try {
-    const response = await get_comments({ news_id })
+    const response = await get_comments(news_id)
+    // console.log('comments', response.data.data)
     if (response.data.status === '1' && response.data.data) {
       comments.value = response.data.data
     } else {
@@ -86,8 +111,15 @@ const fetchComments = async (news_id) => {
 // 在组件挂载时获取资讯详情和评论
 onMounted(async () => {
   await fetchNewsDetail()
-  if (newsData.value && newsData.value.id) {
-    fetchComments(newsData.value.id)
+  if (newsData.value && newsData.value.news_id) {
+    fetchComments(newsData.value.news_id)
+    // 查询当前用户是否已点赞
+    const likeStatusRes = await check_like_status(newsData.value.news_id)
+    if (likeStatusRes.data && likeStatusRes.data.status === '1' && likeStatusRes.data.data) {
+      isLiked.value = !!likeStatusRes.data.data.is_liked
+    } else {
+      isLiked.value = false
+    }
   }
 })
 
@@ -121,7 +153,7 @@ const handleLike = async () => {
     try {
       // console.log('点赞，news_id:', newsData.value.news_id)
       const response = await like_news(newsData.value.news_id)
-      console.log('点赞响应:', response.data)
+      // console.log('点赞响应:', response.data)
       if (response.data.status === '1') {
         isLiked.value = true
         likeId.value = response.data.like_id
@@ -141,11 +173,11 @@ const handleComment = async () => {
     try {
       const response = await add_comment(newsData.value.news_id, commentText.value)
       if (response.data.status === '1') {
-        alert('评论已提交：' + commentText.value)
+        // alert('评论已提交：' + commentText.value)
         commentText.value = ''
         // 评论成功后刷新评论列表
-        if (newsData.value && newsData.value.id) {
-          fetchComments(newsData.value.id)
+        if (newsData.value && newsData.value.news_id) {
+          fetchComments(newsData.value.news_id)
         }
       } else {
         alert('评论失败: ' + response.data.msg)
@@ -157,6 +189,11 @@ const handleComment = async () => {
   } else {
     alert('评论内容不能为空')
   }
+}
+
+const handleShareToWeChat = () => {
+  // 这里实现转发到微信的功能调度
+  alert('转发到微信待实现，需要前往微信开发者中心申请权限（无域名暂时申请不了）')
 }
 </script>
 
@@ -170,10 +207,11 @@ const handleComment = async () => {
     <header class="article-header">
       <div class="left-group">
         <button class="back-btn" @click="handleBack">←</button>
-        <img src="@/assets/wechat-icon.png" alt="Logo" class="logo" />
-        <h1 class="title">资讯详细</h1>
       </div>
-      <button class="share-btn">转发</button>
+      <h1 class="title">资讯详细</h1>
+      <button class="share-btn" @click="handleShareToWeChat">
+        <img src="@/assets/wechat-icon.png" alt="微信转发" class="logo" />
+      </button>
     </header>
 
     <!-- 加载状态 -->
@@ -207,18 +245,23 @@ const handleComment = async () => {
         <h2>评论 ({{ comments.length }})</h2>
         <div v-if="comments.length > 0" class="comments-list">
           <div v-for="comment in comments" :key="comment.id" class="comment-item">
-            <div class="comment-meta">
-              <span class="comment-user">{{ comment.user_info.nickname || '匿名用户' }}</span>
+            <div class="comment-header">
+              <img
+                :src="comment.avatar_url || 'https://picsum.photos/40/40'"
+                class="comment-avatar"
+              />
+              <span class="comment-user">{{ comment.user_name || '匿名用户' }}</span>
               <span class="comment-time">{{ comment.create_time }}</span>
             </div>
             <p class="comment-content">{{ comment.content }}</p>
           </div>
+          <div class="comments-end">—— 已经到底啦 ——</div>
         </div>
         <div v-else class="no-comments">暂无评论，快来发表你的看法吧！</div>
       </div>
 
-      <!-- 底部栏 -->
-      <footer class="article-footer">
+      <!-- 固定底部栏 -->
+      <footer class="article-footer fixed-footer">
         <input
           v-model="commentText"
           type="text"
@@ -238,7 +281,7 @@ const handleComment = async () => {
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f8f9fa;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
 }
@@ -267,15 +310,12 @@ const handleComment = async () => {
   cursor: pointer;
 }
 
-.logo {
-  height: 2rem;
-  vertical-align: middle;
-}
-
 .title {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
+  flex: 1;
+  text-align: center;
 }
 
 .share-btn {
@@ -284,6 +324,13 @@ const handleComment = async () => {
   font-size: 0.9rem;
   color: #07c160;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 2rem;
+  vertical-align: middle;
 }
 
 /* 用户信息 */
@@ -347,9 +394,7 @@ const handleComment = async () => {
 
 /* 文章内容 */
 .article-content {
-  flex: 1;
   padding: 1.5rem;
-  overflow-y: auto;
   background-color: #fff;
   word-break: break-word;
   line-height: 1.6;
@@ -391,23 +436,45 @@ const handleComment = async () => {
   margin-bottom: 10px;
 }
 
-.comment-meta {
+.comment-header {
   display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: #999;
-  margin-bottom: 5px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 8px;
+  object-fit: cover;
+  vertical-align: middle;
 }
 
 .comment-user {
   font-weight: bold;
   color: #555;
+  margin-right: 10px;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #999;
+  margin-left: auto;
 }
 
 .comment-content {
   font-size: 15px;
   color: #333;
   line-height: 1.6;
+}
+
+.comments-end {
+  text-align: center;
+  color: #bbb;
+  margin: 20px 0 0 0;
+  font-size: 14px;
 }
 
 .no-comments {
@@ -530,5 +597,20 @@ const handleComment = async () => {
 .markdown-preview :deep(p) {
   margin: 1rem 0;
   line-height: 1.6;
+}
+
+/* 样式调整：固定底部栏 */
+.fixed-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+/* 给内容和评论区底部留出空间，避免被底部栏遮挡 */
+.article-content,
+.comments-section {
+  padding-bottom: 70px;
 }
 </style>

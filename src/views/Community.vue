@@ -190,15 +190,33 @@ const currentLocation = ref(null)
 const locationLoading = ref(false)
 const showLocationDetail = ref(false)
 
+// 工具函数：获取本地存储的有效定位（1天内）
+function getValidLocationFromStorage() {
+  const str = localStorage.getItem('geoData')
+  if (!str) return null
+  try {
+    const data = JSON.parse(str)
+    if (Date.now() - data.timestamp > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem('geoData')
+      return null
+    }
+    return data
+  } catch {
+    localStorage.removeItem('geoData')
+    return null
+  }
+}
+// 工具函数：保存定位到本地
+function saveLocationToStorage(location) {
+  localStorage.setItem('geoData', JSON.stringify(location))
+}
+
 // 获取详细位置信息
 async function getDetailLocation(position) {
   try {
-    // console.log('position',position);
-    let data = ''
     const res = await get_location(position)
-    data = res.data
+    const data = res.data
     if (data.status === '1' && data.regeocode) {
-      // console.log("return data",data.regeocode)
       return data.regeocode
     }
   } catch (error) {
@@ -207,18 +225,13 @@ async function getDetailLocation(position) {
   }
 }
 
-// 定义一个获取地理位置信息的异步函数
-// 异步函数的父函数也得用async标注上异步；调用异步函数获取数据时，使用await等待其进行完毕。
+// 获取实时定位
 async function getLocation() {
   return new Promise((resolve, reject) => {
-    // 检查浏览器是否支持地理定位
     if (!navigator.geolocation) {
       reject('浏览器不支持定位')
     }
-
-    // 使用getCurrentPosition方法尝试获取当前位置
     navigator.geolocation.getCurrentPosition(
-      // 成功回调：当获取位置成功时触发
       (position) =>
         resolve({
           latitude: position.coords.latitude,
@@ -226,66 +239,24 @@ async function getLocation() {
           accuracy: position.coords.accuracy,
           timestamp: Date.now(),
         }),
-      // 错误回调：当获取位置失败时触发
       (error) => reject(error),
-      // 可选配置项，如高精度、超时等
       { enableHighAccuracy: true, timeout: 10000 },
     )
   })
 }
 
-// 获取定位经纬度数据
-const getCoordinate = async () => {
-  if ('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        // 成功回调
-        const latitude = position.coords.latitude // 纬度
-        const longitude = position.coords.longitude // 经度
-        const accuracy = position.coords.accuracy // 精度（米）
-        console.log('定位成功：', { latitude, longitude, accuracy })
-      },
-      (error) => {
-        // 失败回调
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            console.error('用户拒绝授权')
-            break
-          case error.POSITION_UNAVAILABLE:
-            console.error('无法获取位置')
-            break
-          case error.TIMEOUT:
-            console.error('请求超时')
-            break
-        }
-      },
-      {
-        enableHighAccuracy: true, // 是否高精度模式（GPS）
-        timeout: 10000, // 超时时间（毫秒）
-        maximumAge: 30000, // 允许使用缓存位置的最大时间
-      },
-    )
-  } else {
-    console.error('浏览器不支持定位功能')
-  }
-}
-
-// 处理定位点击
-const handleLocationClick = async () => {
-  if (currentLocation.value) {
-    showLocationDetail.value = true
-    return
-  }
-
-  if (locationLoading.value) return
-
+// 初始化定位：强制获取实时位置并保存，展示详细信息
+const init_location = async function () {
   locationLoading.value = true
-  showToast({ message: '正在获取位置...', duration: 1500 })
-
   try {
-    init_location()
+    const geo = await getLocation()
+    saveLocationToStorage(geo)
+    currentLocation.value = await getDetailLocation(geo)
+    if (currentLocation.value) {
+      currentLocation.value.accuracy = geo.accuracy
+    }
   } catch (error) {
-    console.error('定位失败:', error)
+    currentLocation.value = null
     showToast({
       message: error.PERMISSION_DENIED ? '请授权位置权限' : '获取位置失败',
       position: 'bottom',
@@ -295,42 +266,21 @@ const handleLocationClick = async () => {
   }
 }
 
-const init_location = async function () {
-  let storedGeo = localStorage.getItem('geoData')
-  if (storedGeo) {
-    currentLocation.value = await getDetailLocation(storedGeo)
-    currentLocation.value.accuracy = JSON.parse(storedGeo)['accuracy']
-    // console.log("currentLocation.value", currentLocation.value);
-  } else {
-    storedGeo = await getLocation()
-    localStorage.setItem('geoData', JSON.stringify(storedGeo))
-    currentLocation.value = await getDetailLocation(storedGeo)
-  }
-  return !!(currentLocation.value && storedGeo)
+// 处理定位点击：强制重新获取实时位置
+const handleLocationClick = async () => {
+  await init_location()
+  showLocationDetail.value = true
 }
-// -----------------------加载数据---------------------------
 
+// -----------------------加载数据---------------------------
 let index = 0
 const fetchData = async function () {
-  // 从本地存储获取地理信息
-  const storedGeo = localStorage.getItem('geoData')
-
-  if (!storedGeo) {
-    console.error('未找到地理位置信息')
-    // 可以在这里触发重新获取定位
+  // 获取本地存储的有效定位
+  const geoData = getValidLocationFromStorage()
+  if (!geoData) {
     await init_location()
     return fetchData()
   }
-
-  const geoData = JSON.parse(storedGeo)
-  // 添加有效性检查（示例：60分钟内的定位）
-  // const THIRTY_MINUTES = 60 * 60 * 1000;
-  // if (new Date().getTime() - geoData.timestamp > THIRTY_MINUTES) {
-  //   console.warn("地理位置信息已过期");
-  //   localStorage.removeItem('geoData');
-  //   return;
-  // }
-
   // 使用存储的地理信息请求数据
   const response = await nearby_news_info(
     {
@@ -340,45 +290,12 @@ const fetchData = async function () {
     },
     index,
   )
-  console.log('fetchData', response.data)
   if (response.data.status === '1') {
     index++ // 分页索引递增
     return response.data.data
   } else {
     // 模拟从服务器获取数据
-    return [
-      {
-        id: 1,
-        avatar_url:
-          'https://fuyi-pingtai.oss-cn-beijing.aliyuncs.com/avatar/17af5fe80fb1844b3fd48941.png',
-        user_name: '蓝球',
-        publish_date: '2023-04-02',
-        content:
-          '看了下直播回放，雷军这人，在营销上真的没有对手。[哭泣][哭泣]\n' +
-          '别人家开发布会，都是请明星撑场子，讲参数、介绍特色，雷总营销讲情怀：从湖北状元到卡里就剩下40亿的凡尔赛人生。\n' +
-          '别人被调侃都是采取法律手段，雷总反手买下“ARE YOU OK”版权自黑，直播间和网友玩梗玩到起飞。\n' +
-          '其他车企直播全靠老板尬聊，何小鹏吐槽：雷军营销比我强，但我技术要赢！\n' +
-          '雷军他不语，深藏功与名，跑去小米工厂当“厂长”，顺便晒出睡觉摸鱼视频，一下拉进了跟打工人的距离。\n' +
-          '这次SU7 Ultra发布会，刚开始说是对标保时捷，预售价定个80万元，上市后价格直接跳水，52万就可买回家，让人感觉不买就亏了，下单瞬间怒赚28万元。\n' +
-          '接着再给你出个纽北限量版，卖到81万，把这台车的调性拉了回去。\n' +
-          '而且他每次开发布会，不仅产品大卖，顺便还会带动周边产品。\n' +
-          '比如这次小米 SU7 Ultra 发布会，带火了雷总身上的皮衣，据说平替只要3900，打工人买不起小米，还买不起一件雷总同款皮衣嘛！\n' +
-          '虽然昨天首富一日游，但就雷总这销售能力，随着小米SU7 Ultra大卖，估计用不了多久首富宝座指日可待啊！\n' +
-          '\n' +
-          '作者：幽默的致富敢死队\n' +
-          '链接：https://xueqiu.com/1496557248/325528191\n' +
-          '来源：雪球\n' +
-          '著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。\n' +
-          '风险提示：本文所提到的观点仅代表个人的意见，所涉及标的不作推荐，据此买卖，风险自负。',
-        images: [
-          'https://fuyi-pingtai.oss-cn-beijing.aliyuncs.com/pictures/1954d3b73a14331d3fef6623.jpg%21800.jpg',
-        ],
-        position: '北京',
-        comment_count: 3, //666 1k+  1w+
-        like_count: 15, //666 1k+  1w+
-        view_count: 75, //666 1k+  1w+  10w+
-      },
-    ]
+    return []
   }
 }
 
@@ -395,7 +312,7 @@ const on_load = () => {
   setTimeout(async () => {
     // 模拟异步加载
     const newData = await fetchData()
-    console.log('newData', newData)
+    // console.log('newData', newData)
     if (newData.length === 0) {
       finished.value = true
     } else {
@@ -416,14 +333,11 @@ const getImageContainerStyle = () => {
 // -----------------------位置、资讯数据初始化----------------------------
 
 // 添加点击外部关闭菜单的功能
-onMounted(() => {
-  // 初始化定位
-  if (init_location()) {
-    // 初始化数据
-    fetchData()
-  }
-
-  // 添加全局点击事件监听器，点击菜单外区域时关闭菜单
+onMounted(async () => {
+  // 页面刷新时强制获取实时位置
+  await init_location()
+  // 初始化数据
+  fetchData()
   document.addEventListener('click', closeShareMenu)
 })
 
@@ -526,22 +440,7 @@ async function initWechatShare(item) {
 }
 
 const shareToWechat = async (item) => {
-  try {
-    // 确保微信JS-SDK已加载
-    await loadWechatJSSDK()
-
-    // 直接调用微信API
-    wx.invoke('shareToWechat', {
-      type: 'friends',
-      success: () => {
-        showToast('分享成功')
-        // 如果有埋点需求，可以取消注释
-        // trackAnalytics('share', 'wechat', item.id)
-      },
-    })
-  } catch (error) {
-    console.error('分享失败:', error)
-  }
+  alert('微信分享接口暂时申请不了权限调用，功能待开发')
 }
 </script>
 
