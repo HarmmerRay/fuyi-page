@@ -1,7 +1,14 @@
 <template>
   <div class="community">
     <div class="search-and-post">
-      <van-search v-model="search_query" placeholder="搜索资讯" />
+      <van-search
+        v-model="search_query"
+        placeholder="搜索资讯"
+        @search="handleSearch"
+        @clear="handleCancelSearch"
+        @cancel="handleCancelSearch"
+        show-action
+      />
       <img src="@/assets/publish.png" alt="发布" @click="go_to_post" class="publish-icon" />
     </div>
     <div class="location-bar" @click="handleLocationClick">
@@ -36,90 +43,150 @@
       <van-tab title="附近"></van-tab>
     </van-tabs>
     <div class="news-list">
-      <van-list v-model="loading" :finished="finished" finished-text="没有更多了" @load="on_load">
-        <template v-if="loading && !items.length">
-          <div class="loading-wrapper">
-            <van-loading size="24px" vertical color="#1989fa"> 拼命加载中... </van-loading>
-          </div>
-        </template>
+      <template v-if="searchMode">
+        <van-list v-model="searchLoading" :finished="searchFinished" finished-text="没有更多了">
+          <template v-if="searchLoading">
+            <div class="loading-wrapper">
+              <van-loading size="24px" vertical color="#1989fa"> 搜索中... </van-loading>
+            </div>
+          </template>
+          <template v-else-if="searchResult.length">
+            <div
+              v-for="(item, index) in searchResult"
+              :key="index"
+              class="item"
+              @click="go_detail(item)"
+            >
+              <!-- 头像、用户名、发布日期 -->
+              <van-row type="flex" align="center">
+                <van-col span="2">
+                  <van-image round width="23px" height="23px" :src="item.avatar_url" />
+                </van-col>
+                <van-col span="16">
+                  <p class="username">{{ item.user_name }}</p>
+                </van-col>
+                <van-col>
+                  <p class="publish-date">{{ item.publish_date }}</p>
+                </van-col>
+              </van-row>
+              <!-- 文字简介 -->
+              <p class="content">{{ item.content.slice(0, 200) }}...</p>
+              <!-- 图片 -->
+              <van-row gutter="10" v-if="item.images.length > 0" class="image-row">
+                <van-col
+                  v-for="(image, imgIndex) in item.images.slice(0, 3)"
+                  :key="imgIndex"
+                  class="image-col"
+                  :style="getImageContainerStyle()"
+                >
+                  <van-image fit="cover" width="100%" height="100%" :src="image" />
+                </van-col>
+              </van-row>
+              <!-- 分享按钮、评论数、点赞数、浏览数 -->
+              <van-row type="flex">
+                <van-col span="6" style="text-align: left; font-size: 14px; color: #999">
+                  <p>发布于: {{ item.position }}</p>
+                </van-col>
+                <van-col span="5">
+                  <p>评论: {{ item.comment_count }}</p>
+                </van-col>
+                <van-col span="5">
+                  <p>点赞: {{ item.like_count }}</p>
+                </van-col>
+                <van-col span="6">
+                  <p>浏览: {{ item.view_count }}</p>
+                </van-col>
+              </van-row>
+            </div>
+          </template>
+          <template v-else>
+            <div class="loading-wrapper">暂无相关资讯</div>
+          </template>
+        </van-list>
+      </template>
+      <template v-else>
+        <van-list v-model="loading" :finished="finished" finished-text="没有更多了" @load="on_load">
+          <template v-if="loading && !items.length">
+            <div class="loading-wrapper">
+              <van-loading size="24px" vertical color="#1989fa"> 拼命加载中... </van-loading>
+            </div>
+          </template>
+          <template v-else>
+            <div v-for="(item, index) in items" :key="index" class="item" @click="go_detail(item)">
+              <!-- 头像、用户名、发布日期 -->
+              <van-row type="flex" align="center">
+                <van-col span="2">
+                  <van-image round width="23px" height="23px" :src="item.avatar_url" />
+                </van-col>
+                <van-col span="16">
+                  <p class="username">{{ item.user_name }}</p>
+                </van-col>
+                <van-col>
+                  <p class="publish-date">{{ item.publish_date }}</p>
+                </van-col>
+              </van-row>
+              <!-- 文字简介 -->
+              <p class="content">{{ item.content.slice(0, 200) }}...</p>
+              <!-- 图片 -->
+              <van-row gutter="10" v-if="item.images.length > 0" class="image-row">
+                <van-col
+                  v-for="(image, imgIndex) in item.images.slice(0, 3)"
+                  :key="imgIndex"
+                  class="image-col"
+                  :style="getImageContainerStyle()"
+                >
+                  <van-image fit="cover" width="100%" height="100%" :src="image" />
+                </van-col>
+              </van-row>
+              <!-- 分享按钮、评论数、点赞数、浏览数 -->
+              <van-row type="flex">
+                <van-col span="6" style="text-align: left; font-size: 14px; color: #999">
+                  <p>发布于: {{ item.position }}</p>
+                </van-col>
+                <van-col span="5">
+                  <p>评论: {{ item.comment_count }}</p>
+                </van-col>
+                <van-col span="5">
+                  <p>点赞: {{ item.like_count }}</p>
+                </van-col>
+                <van-col span="6">
+                  <p>浏览: {{ item.view_count }}</p>
+                </van-col>
+                <van-col>
+                  <div class="overlay" v-if="isOverlayVisible" @click="handleOverlayClick"></div>
+                  <div class="share-container" :class="{ active: isActive }" @click.stop>
+                    <!-- 使用 img 标签实现图标切换 -->
+                    <img
+                      class="share-icon"
+                      :src="isActive && currentShareItem === item ? blueIcon : greyIcon"
+                      alt="分享按钮"
+                      @click.stop="handleShareClick(item)"
+                    />
 
-        <template v-else>
-          <div v-for="(item, index) in items" :key="index" class="item" @click="go_detail(item)">
-            <!-- 头像、用户名、发布日期 -->
-            <van-row type="flex" align="center">
-              <van-col span="2">
-                <van-image round width="23px" height="23px" :src="item.avatar_url" />
-              </van-col>
-              <van-col span="16">
-                <p class="username">{{ item.user_name }}</p>
-              </van-col>
-              <van-col>
-                <p class="publish-date">{{ item.publish_date }}</p>
-              </van-col>
-            </van-row>
-            <!-- 文字简介 -->
-            <p class="content">{{ item.content.slice(0, 200) }}...</p>
-
-            <!-- 图片 -->
-            <van-row gutter="10" v-if="item.images.length > 0" class="image-row">
-              <van-col
-                v-for="(image, imgIndex) in item.images.slice(0, 3)"
-                :key="imgIndex"
-                class="image-col"
-                :style="getImageContainerStyle()"
-              >
-                <van-image fit="cover" width="100%" height="100%" :src="image" />
-              </van-col>
-            </van-row>
-
-            <!-- 分享按钮、评论数、点赞数、浏览数 -->
-            <van-row type="flex">
-              <van-col span="6" style="text-align: left; font-size: 14px; color: #999">
-                <p>发布于: {{ item.position }}</p>
-              </van-col>
-              <van-col span="5">
-                <p>评论: {{ item.comment_count }}</p>
-              </van-col>
-              <van-col span="5">
-                <p>点赞: {{ item.like_count }}</p>
-              </van-col>
-              <van-col span="6">
-                <p>浏览: {{ item.view_count }}</p>
-              </van-col>
-              <van-col>
-                <div class="overlay" v-if="isOverlayVisible" @click="handleOverlayClick"></div>
-                <div class="share-container" :class="{ active: isActive }" @click.stop>
-                  <!-- 使用 img 标签实现图标切换 -->
-                  <img
-                    class="share-icon"
-                    :src="isActive && currentShareItem === item ? blueIcon : greyIcon"
-                    alt="分享按钮"
-                    @click.stop="handleShareClick(item)"
-                  />
-
-                  <!-- 分享菜单 -->
-                  <div
-                    class="share-menu"
-                    v-if="showShareMenu && currentShareItem === item"
-                    @click.stop
-                  >
-                    <div class="menu-item" @click.stop="shareToWechat(item)">
-                      <img src="@/assets/wechat-icon.png" alt="微信好友" />
-                      <span>微信好友</span>
+                    <!-- 分享菜单 -->
+                    <div
+                      class="share-menu"
+                      v-if="showShareMenu && currentShareItem === item"
+                      @click.stop
+                    >
+                      <div class="menu-item" @click.stop="shareToWechat(item)">
+                        <img src="@/assets/wechat-icon.png" alt="微信好友" />
+                        <span>微信好友</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </van-col>
-            </van-row>
-          </div>
-        </template>
-        <!-- 底部加载提示 -->
-        <template #loading>
-          <div class="bottom-loading">
-            <van-loading size="18px" vertical color="#969799"> 正在加载更多... </van-loading>
-          </div>
-        </template>
-      </van-list>
+                </van-col>
+              </van-row>
+            </div>
+          </template>
+          <!-- 底部加载提示 -->
+          <template #loading>
+            <div class="bottom-loading">
+              <van-loading size="18px" vertical color="#969799"> 正在加载更多... </van-loading>
+            </div>
+          </template>
+        </van-list>
+      </template>
     </div>
   </div>
 </template>
@@ -127,7 +194,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
 import { showToast } from 'vant'
-import { get_location, nearby_news_info } from '@/api/db.js'
+import { get_location, nearby_news_info, search_news } from '@/api/db.js'
 // -----------------------分享功能----------------------------
 import greyIcon from '@/assets/share_grey.png' // 确保路径正确
 import blueIcon from '@/assets/share_blue.png'
@@ -179,6 +246,45 @@ const active_tab = ref(true)
 const loading = ref(true)
 const finished = ref(false)
 const items = ref([])
+const searchMode = ref(false) // 是否处于搜索模式
+const searchResult = ref([])
+const searchLoading = ref(false)
+const searchFinished = ref(false)
+
+// 搜索新闻资讯
+const handleSearch = async (val) => {
+  const keyword = val || search_query.value.trim()
+  if (!keyword) {
+    showToast('请输入搜索关键词')
+    return
+  }
+  searchMode.value = true
+  searchLoading.value = true
+  searchFinished.value = false
+  try {
+    const res = await search_news(keyword)
+    if (res.data.status === '1' && Array.isArray(res.data.data)) {
+      searchResult.value = res.data.data
+      searchFinished.value = res.data.data.length === 0
+    } else {
+      searchResult.value = []
+      searchFinished.value = true
+    }
+  } catch (e) {
+    searchResult.value = []
+    searchFinished.value = true
+    showToast('搜索失败')
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+const handleCancelSearch = () => {
+  search_query.value = ''
+  searchMode.value = false
+  searchResult.value = []
+  searchFinished.value = false
+}
 
 // todo 发布资讯页面跳转
 const go_to_post = () => {

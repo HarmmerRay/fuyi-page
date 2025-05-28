@@ -237,3 +237,11 @@ export const deleteMessage = (msg_id) => {
     },
   })
 }
+
+export const search_news = (keyword) => {
+  return http({
+    url: '/api/search_news',
+    method: 'POST',
+    data: { keyword },
+  })
+}
