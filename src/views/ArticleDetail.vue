@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 
 import highlightjs from 'markdown-it-highlightjs'
-import { select_news_by_id, like_news, unlike_news, add_comment } from '@/api/db.js'
+import { select_news_by_id, like_news, unlike_news, add_comment, get_comments } from '@/api/db.js'
 
 // 初始化markdown-it解析器
 const md = new MarkdownIt({
@@ -25,6 +25,7 @@ const route = useRoute()
 const newsData = ref(null)
 const loading = ref(true)
 const likeId = ref(null) // 用于存储点赞ID，以便取消点赞
+const comments = ref([]) // 存储评论列表
 
 // 计算属性：渲染后的Markdown内容
 const renderedContent = computed(() => {
@@ -43,6 +44,9 @@ const fetchNewsDetail = async () => {
     console.log('获取资讯详情成功:', response.data)
     if (response.data.status === '1' && response.data.data) {
       newsData.value = response.data.data
+      // 确保publish_time和location有默认值
+      newsData.value.publish_time = newsData.value.publish_time || '未知时间'
+      newsData.value.location = newsData.value.location || '未知地点'
 
       // 设置文章内容
       articleContent.value = `# ${newsData.value.title || '资讯详情'}\n\n${newsData.value.content || ''}`
@@ -52,6 +56,9 @@ const fetchNewsDetail = async () => {
       const cachedItem = JSON.parse(localStorage.getItem('item_' + news_id) || '{}')
       if (cachedItem) {
         newsData.value = cachedItem
+        // 确保从localStorage加载的数据也有默认值
+        newsData.value.publish_time = newsData.value.publish_time || '未知时间'
+        newsData.value.location = newsData.value.location || '未知地点'
         articleContent.value = `# ${cachedItem.title || '资讯详情'}\n\n${cachedItem.content || ''}`
       }
     }
@@ -62,9 +69,26 @@ const fetchNewsDetail = async () => {
   }
 }
 
-// 在组件挂载时获取资讯详情
-onMounted(() => {
-  fetchNewsDetail()
+// 获取评论列表
+const fetchComments = async (news_id) => {
+  try {
+    const response = await get_comments({ news_id })
+    if (response.data.status === '1' && response.data.data) {
+      comments.value = response.data.data
+    } else {
+      console.error('获取评论失败:', response.data.msg)
+    }
+  } catch (error) {
+    console.error('获取评论出错:', error)
+  }
+}
+
+// 在组件挂载时获取资讯详情和评论
+onMounted(async () => {
+  await fetchNewsDetail()
+  if (newsData.value && newsData.value.id) {
+    fetchComments(newsData.value.id)
+  }
 })
 
 // 操作方法
@@ -119,7 +143,10 @@ const handleComment = async () => {
       if (response.data.status === '1') {
         alert('评论已提交：' + commentText.value)
         commentText.value = ''
-        // 可以在这里刷新评论列表或更新评论计数
+        // 评论成功后刷新评论列表
+        if (newsData.value && newsData.value.id) {
+          fetchComments(newsData.value.id)
+        }
       } else {
         alert('评论失败: ' + response.data.msg)
       }
@@ -174,6 +201,21 @@ const handleComment = async () => {
 
       <!-- Markdown 内容 -->
       <article class="article-content markdown-preview" v-html="renderedContent"></article>
+
+      <!-- 评论区 -->
+      <div class="comments-section">
+        <h2>评论 ({{ comments.length }})</h2>
+        <div v-if="comments.length > 0" class="comments-list">
+          <div v-for="comment in comments" :key="comment.id" class="comment-item">
+            <div class="comment-meta">
+              <span class="comment-user">{{ comment.user_info.nickname || '匿名用户' }}</span>
+              <span class="comment-time">{{ comment.create_time }}</span>
+            </div>
+            <p class="comment-content">{{ comment.content }}</p>
+          </div>
+        </div>
+        <div v-else class="no-comments">暂无评论，快来发表你的看法吧！</div>
+      </div>
 
       <!-- 底部栏 -->
       <footer class="article-footer">
@@ -310,6 +352,71 @@ const handleComment = async () => {
   overflow-y: auto;
   background-color: #fff;
   word-break: break-word;
+  line-height: 1.6;
+  color: #333;
+}
+
+.article-content img {
+  max-width: 100%; /* 限制图片最大宽度为父容器的100% */
+  height: auto; /* 保持图片宽高比 */
+  display: block; /* 避免图片下方出现空白 */
+  margin: 10px auto; /* 图片居中显示，并添加上下边距 */
+}
+
+/* 评论区样式 */
+.comments-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fff;
+  border-top: 1px solid #eee;
+}
+
+.comments-section h2 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #409eff;
+  padding-bottom: 10px;
+}
+
+.comments-list {
+  margin-top: 10px;
+}
+
+.comment-item {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 5px;
+}
+
+.comment-user {
+  font-weight: bold;
+  color: #555;
+}
+
+.comment-content {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.no-comments {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+  border: 1px dashed #eee;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
 /* 图片样式优化 */
