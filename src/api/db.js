@@ -79,6 +79,7 @@ export const delete_tixing_by_id = (tixing_id) => {
     },
   })
 }
+
 // ---------------------- 资讯 ------------------------------
 // 雪球是：一个资讯一次请求，请求时带上当前是第几条，index
 export const nearby_news_info = (coordinate, index) => {
@@ -89,6 +90,15 @@ export const nearby_news_info = (coordinate, index) => {
     data: {
       coordinate,
       index,
+    },
+  })
+}
+export const select_news_by_id = (news_id) => {
+  return http({
+    url: '/api/get_news_by_id',
+    method: 'GET',
+    params: {
+      news_id,
     },
   })
 }
@@ -116,6 +126,48 @@ export const publish_news = (news) => {
     },
   })
 }
+
+export const like_news = (news_id) => {
+  return http({
+    url: '/api/like_news',
+    method: 'POST',
+    data: {
+      news_id,
+    },
+  })
+}
+
+export const unlike_news = (like_id) => {
+  return http({
+    url: '/api/unlike_news',
+    method: 'POST',
+    data: {
+      like_id,
+    },
+  })
+}
+
+export const add_comment = (news_id, content) => {
+  return http({
+    url: '/api/add_comment',
+    method: 'POST',
+    data: {
+      news_id,
+      content,
+    },
+  })
+}
+
+export const get_comments = (news_id) => {
+  return http({
+    url: '/api/get_comments',
+    method: 'POST',
+    data: {
+      news_id,
+    },
+  })
+}
+
 // ---------------------- 消息中心 ------------------------------
 export const getMessages = (user_id) => {
   return http({

@@ -66,15 +66,9 @@
                 v-for="(image, imgIndex) in item.images.slice(0, 3)"
                 :key="imgIndex"
                 class="image-col"
-                :style="getImageContainerStyle(image)"
+                :style="getImageContainerStyle()"
               >
-                <van-image
-                  fit="cover"
-                  width="100%"
-                  height="100%"
-                  :src="image"
-                  @load="(e) => handleImageLoad(e, image)"
-                />
+                <van-image fit="cover" width="100%" height="100%" :src="image" />
               </van-col>
             </van-row>
 
@@ -94,28 +88,24 @@
               </van-col>
               <van-col>
                 <div class="overlay" v-if="isOverlayVisible" @click="handleOverlayClick"></div>
-                <div
-                  class="share-container"
-                  :class="{ active: isActive }"
-                  @click.stop="handleShareClick"
-                >
+                <div class="share-container" :class="{ active: isActive }" @click.stop>
                   <!-- 使用 img 标签实现图标切换 -->
                   <img
                     class="share-icon"
-                    :src="isActive ? blueIcon : greyIcon"
+                    :src="isActive && currentShareItem === item ? blueIcon : greyIcon"
                     alt="分享按钮"
-                    @click.stop="handleShareClick"
+                    @click.stop="handleShareClick(item)"
                   />
 
                   <!-- 分享菜单 -->
-                  <div v-if="showShareMenu" class="share-menu">
+                  <div
+                    class="share-menu"
+                    v-if="showShareMenu && currentShareItem === item"
+                    @click.stop
+                  >
                     <div class="menu-item" @click.stop="shareToWechat(item)">
                       <img src="@/assets/wechat-icon.png" alt="微信好友" />
                       <span>微信好友</span>
-                    </div>
-                    <div class="menu-item" @click.stop="shareToMoment(item)">
-                      <img src="@/assets/moment-icon.png" alt="朋友圈" />
-                      <span>朋友圈</span>
                     </div>
                   </div>
                 </div>
@@ -135,7 +125,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { showToast } from 'vant'
 import { get_location, nearby_news_info } from '@/api/db.js'
 // -----------------------分享功能----------------------------
@@ -143,16 +133,52 @@ import greyIcon from '@/assets/share_grey.png' // 确保路径正确
 import blueIcon from '@/assets/share_blue.png'
 import router from '@/router/index.js'
 
+// 默认分享图片
+const defaultShareImage = 'https://placehold.co/600x400/png' // 使用占位图作为默认分享图片
+
+// 添加微信JS-SDK引入
+const loadWechatJSSDK = () => {
+  return new Promise((resolve, reject) => {
+    // 检查是否已经加载过微信JS-SDK
+    if (window.wx) {
+      resolve(window.wx)
+      return
+    }
+
+    // 创建script标签
+    const script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.src = 'https://res.wx.qq.com/open/js/jweixin-1.6.0.js' // 使用最新的微信JS-SDK
+    script.onload = () => {
+      console.log('微信JS-SDK加载成功')
+      resolve(window.wx)
+    }
+    script.onerror = (error) => {
+      console.error('微信JS-SDK加载失败:', error)
+      reject(error)
+    }
+    document.head.appendChild(script)
+  })
+}
+
+// 微信配置函数
+const getWechatConfig = async () => {
+  // 这里应该是从后端获取微信JS-SDK配置信息
+  // 由于目前没有实际的后端接口，返回模拟数据
+  console.log('获取微信配置')
+  return {
+    appId: 'wx123456789',
+    timestamp: Math.floor(Date.now() / 1000).toString(),
+    nonceStr: Math.random().toString(36).substr(2),
+    signature: 'mock_signature_' + Date.now(),
+  }
+}
+
 const search_query = ref('')
 const active_tab = ref(true)
 const loading = ref(true)
 const finished = ref(false)
 const items = ref([])
-
-const trackShare = (type) => {
-  // 埋点逻辑
-  this.$ga.event('Share', type, currentShareItem.value.id)
-}
 
 // todo 发布资讯页面跳转
 const go_to_post = () => {
@@ -179,6 +205,33 @@ async function getDetailLocation(position) {
     console.error('获取详细位置失败:', error)
     return null
   }
+}
+
+// 定义一个获取地理位置信息的异步函数
+// 异步函数的父函数也得用async标注上异步；调用异步函数获取数据时，使用await等待其进行完毕。
+async function getLocation() {
+  return new Promise((resolve, reject) => {
+    // 检查浏览器是否支持地理定位
+    if (!navigator.geolocation) {
+      reject('浏览器不支持定位')
+    }
+
+    // 使用getCurrentPosition方法尝试获取当前位置
+    navigator.geolocation.getCurrentPosition(
+      // 成功回调：当获取位置成功时触发
+      (position) =>
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: Date.now(),
+        }),
+      // 错误回调：当获取位置失败时触发
+      (error) => reject(error),
+      // 可选配置项，如高精度、超时等
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  })
 }
 
 // 获取定位经纬度数据
@@ -215,33 +268,6 @@ const getCoordinate = async () => {
   } else {
     console.error('浏览器不支持定位功能')
   }
-}
-
-// 定义一个获取地理位置信息的异步函数
-// 异步函数的父函数也得用async标注上异步；调用异步函数获取数据时，使用await等待其进行完毕。
-async function getLocation() {
-  return new Promise((resolve, reject) => {
-    // 检查浏览器是否支持地理定位
-    if (!navigator.geolocation) {
-      reject('浏览器不支持定位')
-    }
-
-    // 使用getCurrentPosition方法尝试获取当前位置
-    navigator.geolocation.getCurrentPosition(
-      // 成功回调：当获取位置成功时触发
-      (position) =>
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: Date.now(),
-        }),
-      // 错误回调：当获取位置失败时触发
-      (error) => reject(error),
-      // 可选配置项，如高精度、超时等
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
-  })
 }
 
 // 处理定位点击
@@ -380,44 +406,74 @@ const on_load = () => {
   }, 1000)
 }
 
-const getImageContainerStyle = (image) => {
-  const ratio = image.height / image.width
+const getImageContainerStyle = () => {
   return {
     // 基础宽度（根据列布局自动计算）
-    paddingBottom: `${ratio * 100}%`,
+    paddingBottom: '100%', // 默认正方形
   }
-}
-
-// 动态获取图片尺寸（如果未知尺寸）
-const handleImageLoad = (e, image) => {
-  const img = e.target
-  const naturalWidth = img.naturalWidth
-  const naturalHeight = img.naturalHeight
-  // 更新数据中的图片尺寸（需要响应式处理）
-  this.$set(image, 'width', naturalWidth)
-  this.$set(image, 'height', naturalHeight)
 }
 
 // -----------------------位置、资讯数据初始化----------------------------
 
+// 添加点击外部关闭菜单的功能
 onMounted(() => {
   // 初始化定位
   if (init_location()) {
     // 初始化数据
     fetchData()
   }
+
+  // 添加全局点击事件监听器，点击菜单外区域时关闭菜单
+  document.addEventListener('click', closeShareMenu)
 })
 
+// 组件卸载时移除事件监听器
+onUnmounted(() => {
+  document.removeEventListener('click', closeShareMenu)
+})
+
+// 关闭分享菜单的函数
+const closeShareMenu = (event) => {
+  // 检查点击的元素是否在分享容器内
+  const shareContainers = document.querySelectorAll('.share-container')
+  for (const container of shareContainers) {
+    if (container.contains(event.target)) {
+      // 点击的是分享容器内的元素，不关闭菜单
+      return
+    }
+  }
+
+  // 点击的是分享容器外的元素，关闭菜单
+  if (showShareMenu.value) {
+    currentShareItem.value = null
+    isActive.value = false
+    showShareMenu.value = false
+    isOverlayVisible.value = false
+  }
+}
 const showShareMenu = ref(false)
 const isActive = ref(false)
 const isOverlayVisible = ref(false)
 const currentShareItem = ref(null)
 
 const handleShareClick = (item) => {
+  // 如果点击的是当前已激活的项目，则关闭菜单
+  if (currentShareItem.value === item && isActive.value) {
+    currentShareItem.value = null
+    isActive.value = false
+    showShareMenu.value = false
+    isOverlayVisible.value = false
+    return
+  }
+
+  // 设置当前分享项目
   currentShareItem.value = item
-  isActive.value = !isActive.value
-  showShareMenu.value = !showShareMenu.value
-  isOverlayVisible.value = !isOverlayVisible.value
+  isActive.value = true
+  showShareMenu.value = true
+
+  // 不显示全屏遮罩层，只显示菜单
+  // isOverlayVisible.value = true
+
   // 初始化微信分享（需要提前注入配置）
   initWechatShare(item)
 }
@@ -431,6 +487,9 @@ const handleOverlayClick = () => {
 
 async function initWechatShare(item) {
   try {
+    // 先加载微信JS-SDK
+    await loadWechatJSSDK()
+
     // 获取微信签名配置
     const { appId, timestamp, nonceStr, signature } = await getWechatConfig()
 
@@ -440,28 +499,24 @@ async function initWechatShare(item) {
       timestamp,
       nonceStr,
       signature,
-      jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData'],
+      jsApiList: ['updateAppMessageShareData'], // 只保留分享给朋友的接口
     })
 
     wx.ready(() => {
       // 自定义"分享给朋友"内容
       wx.updateAppMessageShareData({
-        title: item.title,
-        desc: item.content.slice(0, 50),
-        link: window.location.href,
-        imgUrl: item.images[0] || defaultShareImage,
+        title: item.title, // 分享标题，通常是文章标题
+        desc: item.content.slice(0, 50), // 分享描述，通常是文章摘要
+        link: window.location.href, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        imgUrl: item.images[0] || defaultShareImage, // 分享图标，使用文章的第一张图或默认图片
         success: () => {
-          this.trackShare('wechat')
+          // 用户点击了分享后执行的回调函数
+          // this.trackShare('wechat') // 如果有埋点需求，可以取消注释
+          console.log('分享给朋友成功')
         },
-      })
-
-      // 自定义"分享到朋友圈"内容
-      wx.updateTimelineShareData({
-        title: item.title,
-        link: window.location.href,
-        imgUrl: item.images[0] || defaultShareImage,
-        success: () => {
-          this.trackShare('moment')
+        cancel: () => {
+          // 用户取消分享后执行的回调函数
+          console.log('取消分享给朋友')
         },
       })
     })
@@ -470,25 +525,23 @@ async function initWechatShare(item) {
   }
 }
 
-const shareToWechat = (item) => {
-  // 直接调用微信API
-  wx.invoke('shareToWechat', {
-    type: 'friends',
-    success: () => {
-      this.$toast.success('分享成功')
-      this.trackAnalytics('share', 'wechat', item.id)
-    },
-  })
-}
+const shareToWechat = async (item) => {
+  try {
+    // 确保微信JS-SDK已加载
+    await loadWechatJSSDK()
 
-const shareToMoment = (item) => {
-  wx.invoke('shareToWechat', {
-    type: 'timeline',
-    success: () => {
-      this.$toast.success('分享到朋友圈成功')
-      this.trackAnalytics('share', 'moment', item.id)
-    },
-  })
+    // 直接调用微信API
+    wx.invoke('shareToWechat', {
+      type: 'friends',
+      success: () => {
+        showToast('分享成功')
+        // 如果有埋点需求，可以取消注释
+        // trackAnalytics('share', 'wechat', item.id)
+      },
+    })
+  } catch (error) {
+    console.error('分享失败:', error)
+  }
 }
 </script>
 
