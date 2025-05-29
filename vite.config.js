@@ -3,8 +3,8 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
-import pxtovw from "postcss-px-to-viewport";
-import * as fs from "node:fs";
+import pxtovw from 'postcss-px-to-viewport'
+import * as fs from 'node:fs'
 // import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/  原生 ES 模块的新一代前端构建工具
@@ -12,8 +12,8 @@ import * as fs from "node:fs";
 const loder_pxtovw = pxtovw({
   //这里是设计稿宽度 自己修改  px vw 使用vw作为边距大小单位
   viewportWidth: 375,
-  viewportUnit: "vw",
-});
+  viewportUnit: 'vw',
+})
 
 export default defineConfig({
   plugins: [
@@ -42,9 +42,9 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:5000',
         // target: 'http://backend:5000',  // docker-compose 网络之间的主机地址
-        changeOrigin: true,  // 防止跨域
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
+        changeOrigin: true, // 防止跨域
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
     },
     host: true, //开启局域网内访问
     https: {
@@ -54,5 +54,5 @@ export default defineConfig({
       key: fs.readFileSync(new URL('./key.pem', import.meta.url)),
       cert: fs.readFileSync(new URL('./cert.pem', import.meta.url)),
     },
-  }
+  },
 })
