@@ -49,6 +49,16 @@ export const tixing_item_add = (user_id, tixing_item) => {
     },
   })
 }
+export const tixing_item_update = (tixing_id, tixing_item) => {
+  return http({
+    url: '/api/tixing_item_update',
+    method: 'POST',
+    data: {
+      tixing_id,
+      tixing_item,
+    },
+  })
+}
 
 export const tixing_item_select_id = (tixing_item_id) => {
   return http({
